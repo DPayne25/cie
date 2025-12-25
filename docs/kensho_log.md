@@ -177,7 +177,7 @@ Goal: Map futures contracts and design the Postgres schema. No code until this i
 
 ## Objectives & Solutions
 
-- [ ] Identify COT report type (CFTC).
+- [x] Identify COT report type (CFTC).
 
 >Execution & Solution:
 >
@@ -204,7 +204,10 @@ Goal: Map futures contracts and design the Postgres schema. No code until this i
 
 - [ ] Define trader classes to track.
 
-Execution & Solution:
+> Execution & Solution:
+
+
+
 
 
 - [ ] Define time alignment rules (Tuesday → Friday).
