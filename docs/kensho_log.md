@@ -51,47 +51,161 @@ Goal: Lock the objective and scope.
 
 # [P1] Server Foundation (SF)
 
-Goal: Designate the Debian 13 server as the single source of truth.
+Goal: Designate the Debian 13 server (Kensho-Dev-v1) as the single source of truth.
 
-Objectives & Solutions
+## Objectives & Solutions
 
-- [ ] Designate server as single source of truth.
+- [x] Designate server as single source of truth.
 
-Execution & Solution:
+>Execution & Solution:
+>
+>SSH to Kensho-Dev-v1:
 
-- [ ] Create project root: ~/myProjects/FXCOTDashboard/.
+- [x] Create project root: ~/myProjects/FXCOTDashboard/ and subdirectories.
 
-Execution & Solution:
+>Execution & Solution:
 
-- [ ] Install base services: Postgres, Cron, Git.
+```
+~/myProjects/FXCOTDashboard/
+│
+├── README.md
+│
+├── docs/
+│   ├── architecture.md
+│   ├── data_sources.md
+│   ├── kensho_log.md
+│   ├── assumptions.md
+│   ├── update_schedule.md
+│   └── interpretation_rules.md
+│
+├── config/
+│   ├── database.env
+│   ├── ingestion.toml
+│   ├── logging.toml
+│   └── pairs.yaml
+│
+├── bin/
+│   └── cot_ingestor
+│
+├── src/
+│   ├── main.rs
+│   │
+│   ├── ingestion/
+│   │   ├── mod.rs
+│   │   ├── cot_fetch.rs
+│   │   ├── csv_validate.rs
+│   │   └── fx_price_fetch.rs
+│   │
+│   ├── transform/
+│   │   ├── mod.rs
+│   │   ├── positioning.rs
+│   │   ├── rolling_stats.rs
+│   │   └── volatility.rs
+│   │
+│   ├── db/
+│   │   ├── mod.rs
+│   │   ├── connection.rs
+│   │   ├── insert_raw.rs
+│   │   └── insert_processed.rs
+│   │
+│   ├── time/
+│   │   ├── mod.rs
+│   │   └── cot_calendar.rs
+│   │
+│   └── utils/
+│       ├── logging.rs
+│       ├── checksum.rs
+│       └── error.rs
+│
+├── sql/
+│   ├── schema/
+│   │   ├── 001_create_tables.sql
+│   │   ├── 002_indexes.sql
+│   │   └── 003_views.sql
+│   │
+│   ├── transforms/
+│   │   ├── compute_zscores.sql
+│   │   ├── compute_percentiles.sql
+│   │   └── weekly_deltas.sql
+│   │
+│   └── validation/
+│       ├── row_counts.sql
+│       └── sanity_checks.sql
+│
+├── data/
+│   ├── raw/
+│   │   ├── cot/
+│   │   ├── fx_prices/
+│   │   └── volatility/
+│   │
+│   └── processed/
+│       ├── cot/
+│       └── metrics/
+│
+├── logs/
+│   ├── ingestion.log
+│   ├── errors.log
+│   └── cron.log
+│
+├── cron/
+│   └── cot_weekly.cron
+│
+├── powerbi/
+│   ├── model_notes.md
+│   ├── measures.dax
+│   └── screenshots/
+│
+└── scripts/
+    ├── bootstrap.sh
+    ├── backfill_cot.sh
+    └── health_check.sh
+```
 
-Execution & Solution:
+- [x] Install base services: Postgres, Cron, Git.
 
-- [ ] Harden access: SSH keys only, Firewall locked, Postgres local or restricted IP.
+>Execution & Solution:
+>
+>`sudo apt install postgresql git `
 
-Execution & Solution:
 
-- [ ] Create subdirectories: bin/, sql/, logs/, data/raw/, data/processed/.
+- [x] Harden access: SSH keys only, Firewall locked, Postgres local or restricted IP.
 
-Execution & Solution:
 
 # [P2] Data Modeling (DM)
 
 Goal: Map futures contracts and design the Postgres schema. No code until this is coherent.
 
-Objectives & Solutions
+## Objectives & Solutions
 
 - [ ] Identify COT report type (CFTC).
 
-Execution & Solution:
+>Execution & Solution:
+>
+> - TFF Report
+> - HTML ([CFTC](https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm))
+> - CSV ([CFTC](https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm))
+> - JSON ([Scrata](https://dev.socrata.com/foundry/publicreporting.cftc.gov/gpe5-46if))
 
-- [ ] Map futures contracts → FX pairs.
+- [x] Map futures contracts → FX pairs.
 
-Execution & Solution:
+>Execution & Solution:
+
+| Futures Contract (COT Report) | TFF Code | FX Pair |
+| ----------------------------- | -------- | ------- |
+| Euro                          | 099741   | EURUSD  |
+| Japanese Yen                  | 097741   | USDJPY  |
+| British Pound Sterling        | 096741   | GBPUSD  |
+| Australian Dollar             | 232741   | AUDUSD  |
+| Canadian Dollar               | 090741   | USDCAD  |
+| Swiss Franc                   | 092741   | USDCHF  |
+| New Zealand Dollar            | 112741   | NZDUSD  |
+
+
 
 - [ ] Define trader classes to track.
 
 Execution & Solution:
+
 
 - [ ] Define time alignment rules (Tuesday → Friday).
 
