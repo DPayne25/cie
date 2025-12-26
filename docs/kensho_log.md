@@ -33,7 +33,9 @@ Goal: Lock the objective and scope.
 >**Execution & Solution:**
     > - **COT Data Sources:** [CFTC](https://cftc.gov/) (Webscrape) & [Socrata](https://dev.socrata.com/foundry/publicreporting.cftc.gov/gpe5-46if) (API).
     >
-    > - **FX Price Data Sources:** [Massive](https://massive.com/) (EURUSD, USDJPY, GBPUSD, AUDUSD, USDCHF, USDCAD, NZDUSD).
+    > - **FX Price Data Sources:** 
+    >   - [Oanda](https://https://developer.oanda.com/rest-live-v20/introduction/) (EURUSD, USDJPY, GBPUSD, AUDUSD, USDCHF, USDCAD, NZDUSD)
+    >   - Fallback: [Massive](https://massive.com/) 
     >
     > - **Target Contracts (TFF Codes):**
     >     - Euro (099741)
@@ -216,25 +218,78 @@ Goal: Map futures contracts and design the Postgres schema. No code until this i
 | **Leveraged Funds**             | **SIGNAL** |
 | Other Reportables               | NOISE      | 
 
-- Net Long
-- Net Short
+- Long Positions
+- Short Positions
 - Net Position
 - Change in Net Position
 - Open Interest
 
 
 
-- [ ] Define time alignment rules (Tuesday → Friday).
+- [x] Define time alignment rules (Tuesday → Friday).
 
-Execution & Solution:
+>Execution & Solution:
+>
+>The data from the COT report and the FX price data will be ingested each Friday at 17:30 EST. 
+>The COT data is collected each Tuesday and audited before release on immediate Friday. That means the FX price data by Friday close is the reaction to institutional position that week.
 
 - [ ] Design Postgres schema for Raw COT data, Processed positioning metrics, FX prices, FX volatility, and Pair mappings.
 
 Execution & Solution:
 
+## Table 1: raw_cot_reports
+
+| headers          | data_type | meaning                                |
+| ---------------- | --------- | -------------------------------------- |
+| report_date (PK) | DATE      | The Tuesday date (As-Of)               |
+| tff_code (PK)    | VARCHAR   | e.g., '099741' (Euro)                  |
+| trader_type (PK) | VARCHAR   | *Asset_Manager* or *Leveraged_Funds*   |
+| long_positions   | INT       | Number of long positions               |
+| short_positions  | INT       | Number of short positions              |
+| net_positions    | INT       | `'Long Positions' - 'Short Positions'` |
+| change_from_prev | INT       | $∆$ reported by CFTC                   |
+
+
+## Table 2: raw_fx_prices
+
+| headers     | data_type | meaning                       |
+| ----------- | --------- | ----------------------------- |
+| date (PK)   | DATE      | The daily candle date         |
+| symbol (PK) | VARCHAR   | e.g., 'EURUSD'                |
+| close_price | DECIMAL   | The closing price (Weekly)    |
+| is_tuesday  | BOOLEAN   | Helper flag for fast indexing | 
+
+
+## Table 3: weekly_sentiment
+
+| headers             | data_type | meaning                                               |
+| ------------------- | --------- | ----------------------------------------------------- |
+| report_date (PK)    | DATE      | The Tuesday date                                      |
+| symbol (PK)         | VARCHAR   | e.g., 'EURUSD'                                        |
+| release_date        | DATE      | The Friday Date (report_date + 3)                     |
+| am_net_pos          | INT       | Asset Manager Net                                     |
+| lf_net_pos          | INT       | Leveraged Funds Net                                   |
+| price_tuesday       | DECIMAL   | Price at the moment of the snapshot                   |
+| price_friday        | DECIMAL   | Price at the moment of release                        |
+| price_delta_percent | DECIMAL   | `(price_friday - price_tuesday) / price_tuesday`      |
+| market_response     | VARCHAR   | Computed classification (e.g., 'Bullish Convergence') |
+
+
 - [ ] Decide where each computation lives (Rust vs SQL vs Power BI).
 
-Execution & Solution:
+>Execution & Solution:
+>
+>Home Server -> Tool Environment
+>Rust -> Calculation (Z-Scores)/Connection (API)/Transformation
+>Postgres -> Storage 
+>Power BI -> Presentation
+
+| Task            | Component                   |
+| --------------- | --------------------------- |
+| Environment     | Kensho-Dev-v1 (Home Server) | 
+| Z-Scores/Stats  | Rust                        |
+| Market Verdicts | Rust                        |
+| Joins/Deltas    | Postgres                    |
 
 # [P3] Ingestion Engine (IE)
 
