@@ -297,9 +297,11 @@ Goal: Build the Rust-based engine to automate data fetching. At this point, raw 
 
 Objectives & Solutions
 
-- [ ] Initialize Rust project.
+- [x] Initialize Rust project.
 
 Execution & Solution:
+
+`cargo init`
 
 - [ ] Build CSV downloader.
 
