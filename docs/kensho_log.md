@@ -233,7 +233,7 @@ Goal: Map futures contracts and design the Postgres schema. No code until this i
 >The data from the COT report and the FX price data will be ingested each Friday at 17:30 EST. 
 >The COT data is collected each Tuesday and audited before release on immediate Friday. That means the FX price data by Friday close is the reaction to institutional position that week.
 
-- [ ] Design Postgres schema for Raw COT data, Processed positioning metrics, FX prices, FX volatility, and Pair mappings.
+- [x] Design Postgres schema for Raw COT data, Processed positioning metrics, FX prices, FX volatility, and Pair mappings.
 
 Execution & Solution:
 
@@ -275,7 +275,7 @@ Execution & Solution:
 | market_response     | VARCHAR   | Computed classification (e.g., 'Bullish Convergence') |
 
 
-- [ ] Decide where each computation lives (Rust vs SQL vs Power BI).
+- [x] Decide where each computation lives (Rust vs SQL vs Power BI).
 
 >Execution & Solution:
 >
