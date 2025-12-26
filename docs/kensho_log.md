@@ -202,11 +202,25 @@ Goal: Map futures contracts and design the Postgres schema. No code until this i
 
 
 
-- [ ] Define trader classes to track.
+- [x] Define trader classes to track.
 
 > Execution & Solution:
+>
+> The system will exclusively focus on the Asset Manager and Leveraged Fund categories. This means the Rust ingestion engine (P3) will only extract the Long, Short, Net, and Change in Net columns for these two groups, effectively filtering out the structural hedging (Dealer) and unclassified retail (Other) noise.
 
 
+| Trader Class                    | Action     |
+| ------------------------------- | ---------- |
+| Dealer/Intermediary             | NOISE      |
+| **Asset Manager/Institutional** | **SIGNAL** |
+| **Leveraged Funds**             | **SIGNAL** |
+| Other Reportables               | NOISE      | 
+
+- Net Long
+- Net Short
+- Net Position
+- Change in Net Position
+- Open Interest
 
 
 
