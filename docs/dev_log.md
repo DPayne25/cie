@@ -1,4 +1,4 @@
-# Kensho: The Development Log
+# Project Roadmap: The Development Log
 
 **System:** FX COT Dashboard.
 
@@ -75,7 +75,7 @@ Goal: Designate the Debian 13 server (Kensho-Dev-v1) as the single source of tru
 ├── docs/
 │   ├── architecture.md
 │   ├── data_sources.md
-│   ├── kensho_log.md
+│   ├── dev_log.md
 │   ├── assumptions.md
 │   ├── update_schedule.md
 │   └── interpretation_rules.md
@@ -304,6 +304,12 @@ Execution & Solution:
 `cargo init`
 
 - [ ] Build CSV downloader.
+  Resources: 
+    `reqwest`: https://crates.io/crates/reqwest, https://docs.rs/reqwest/latest/reqwest/
+    `tokio`: https://crates.io/crates/tokio/1.48.0, https://docs.rs/tokio/latest/tokio/
+    `std::fs`: https://doc.rust-lang.org/std/fs/
+    `std::io`: https://doc.rust-lang.org/std/io/
+    
 
 Execution & Solution:
 
