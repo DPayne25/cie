@@ -1,13 +1,12 @@
-use std::collections::HashMap;
+use std::fs;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let resp = reqwest::get("https://httpbin.org/ip")
+    let resp = reqwest::get("https://www.cftc.gov/dea/newcot/FinFutWk.txt")
         .await?
-        .json::<HashMap<String, String>>()
+        .text()
         .await?;
-    println!("{resp:#?}");
+    println!("{}", resp);
+    fs::write("data/raw/cot/date-cot_report.csv", resp)?;
     Ok(())
-}
-
-async fn main() -> Result<(), 
+} 

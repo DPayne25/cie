@@ -307,11 +307,14 @@ Execution & Solution:
   Resources: 
     `reqwest`: https://crates.io/crates/reqwest, https://docs.rs/reqwest/latest/reqwest/
     `tokio`: https://crates.io/crates/tokio/1.48.0, https://docs.rs/tokio/latest/tokio/
+    `std`: https://doc.rust-lang.org/std/
     `std::fs`: https://doc.rust-lang.org/std/fs/
     `std::io`: https://doc.rust-lang.org/std/io/
-    
+    `Packages, Crates, and Modules`: https://doc.rust-lang.org/book/ch07-00-managing-growing-projects-with-packages-crates-and-modules.html
+    `NEW`: Started using VSCode extension `rust-analyzer`
 
 Execution & Solution:
+
 
 - [ ] Validate file structure strictly.
 
