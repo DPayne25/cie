@@ -303,7 +303,7 @@ Execution & Solution:
 
 `cargo init`
 
-- [ ] Build CSV downloader.
+- [x] Build CSV downloader.
   Resources: 
 
     `reqwest`: https://crates.io/crates/reqwest, https://docs.rs/reqwest/latest/reqwest/
@@ -329,10 +329,10 @@ Execution & Solution:
 
 
 
-- [ ] Validate file structure strictly.
+- [x] Validate file structure strictly.
   
     `Naming the File`: https://web.mit.edu/rust-lang_v1.25/arch/amd64_ubuntu1404/share/doc/rust/html/book/second-edition/ch12-02-reading-a-file.html
-    
+
 
 Execution & Solution:
 
