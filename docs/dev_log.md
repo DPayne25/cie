@@ -330,11 +330,11 @@ Execution & Solution:
 
 
 - [x] Validate file structure strictly.
-  
-    `Naming the File`: https://web.mit.edu/rust-lang_v1.25/arch/amd64_ubuntu1404/share/doc/rust/html/book/second-edition/ch12-02-reading-a-file.html
 
 
 Execution & Solution:
+
+`Naming the File`: https://web.mit.edu/rust-lang_v1.25/arch/amd64_ubuntu1404/share/doc/rust/html/book/second-edition/ch12-02-reading-a-file.html
 
 - [ ] Normalize dates & fields.
 
