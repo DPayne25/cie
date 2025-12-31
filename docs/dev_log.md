@@ -34,7 +34,7 @@ Goal: Lock the objective and scope.
     > - **COT Data Sources:** [CFTC](https://cftc.gov/) (Webscrape) & [Socrata](https://dev.socrata.com/foundry/publicreporting.cftc.gov/gpe5-46if) (API).
     >
     > - **FX Price Data Sources:** 
-    >   - [Oanda](https://https://developer.oanda.com/rest-live-v20/introduction/) (EURUSD, USDJPY, GBPUSD, AUDUSD, USDCHF, USDCAD, NZDUSD)
+    >   - [Oanda](https://developer.oanda.com/rest-live-v20/introduction/) (EURUSD, USDJPY, GBPUSD, AUDUSD, USDCHF, USDCAD, NZDUSD)
     >   - Fallback: [Massive](https://massive.com/) 
     >
     > - **Target Contracts (TFF Codes):**
@@ -305,16 +305,29 @@ Execution & Solution:
 
 - [ ] Build CSV downloader.
   Resources: 
+
     `reqwest`: https://crates.io/crates/reqwest, https://docs.rs/reqwest/latest/reqwest/
+
     `tokio`: https://crates.io/crates/tokio/1.48.0, https://docs.rs/tokio/latest/tokio/
+    
     `std`: https://doc.rust-lang.org/std/
+    
     `std::fs`: https://doc.rust-lang.org/std/fs/
+    
     `std::io`: https://doc.rust-lang.org/std/io/
+    
     `Packages, Crates, and Modules`: https://doc.rust-lang.org/book/ch07-00-managing-growing-projects-with-packages-crates-and-modules.html
+    
     `NEW`: Started using VSCode extension `rust-analyzer`
 
 Execution & Solution:
  First successful compiling. ✅
+ `csv_validate.rs`
+ {included csv validator but this is a hard coded method. I will have to shift to using an API}
+
+
+
+
 
 - [ ] Validate file structure strictly.
 

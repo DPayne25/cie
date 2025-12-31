@@ -21,12 +21,12 @@ fn validate_csv() -> Result<(), Box<dyn Error>> {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let resp = reqwest::get("https://www.cftc.gov/dea/newcot/FinFutWk.txt")
+    let cot_data = reqwest::get("https://www.cftc.gov/dea/newcot/FinFutWk.txt")
         .await?
         .text()
         .await?;
-    println!("{}", resp);
-    fs::write("data/raw/cot/date-cot_report.csv", resp)?;
+    println!("{}", cot_data);
+    fs::write("data/raw/cot/{}-cot_report.csv", date, cot_data)?;
     
     validate_csv()?;
     
