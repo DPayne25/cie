@@ -1,7 +1,7 @@
 use std::fs;
 
-#[tokio::main]
-pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
+
+pub async fn fetch_cot_data() -> Result<(), Box<dyn std::error::Error>> {
     
     let cot_data = reqwest::get("https://www.cftc.gov/dea/newcot/FinFutWk.txt")
         .await?
