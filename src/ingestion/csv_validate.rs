@@ -1,4 +1,4 @@
-use std::{fs, error::Error, io, process, path::PathBuf, time::SystemTime};
+use std::{error::Error, io, process};
 
 
 
@@ -26,7 +26,8 @@ pub fn validate_csv() -> Result<(), Box<dyn Error>> {
             ))
         }
     }
-}
+
+
 pub fn main() {
 
     match validate_csv() {

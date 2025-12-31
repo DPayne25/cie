@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+csv = "1.4.0"
 openssl = "0.10.75"
 reqwest = "0.12.28"
 serde = "1.0.228"

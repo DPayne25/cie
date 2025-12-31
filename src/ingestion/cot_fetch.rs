@@ -1,3 +1,5 @@
+use std::fs;
+
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
@@ -8,9 +10,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("{}", cot_data);
 
-    cot_date = cot_data.lines().nth(3);
+    fs::write("data/raw/cot/date-cot_report.csv", cot_data)?;
 
-    fs::write("data/raw/cot/{}-cot_report.csv", cot_date, cot_data)?;
-    
     Ok(())
 } 
