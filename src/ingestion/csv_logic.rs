@@ -1,5 +1,5 @@
 use std::{fs, format, error::Error};
-use csv;
+use csv::ReaderBuilder;
 
 pub fn csv_validate() -> Result<(), Box<dyn std::error::Error>> {
 
@@ -58,16 +58,19 @@ pub fn csv_process_raw_cot() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut writer = csv::Writer::from_path(output_path)?;
 
+    let confirm_tff_codes = vec!["099741", "097741", "096741", "232741", "090741", "092741", "112741"];
+
+
     for result in reader.records() {
         let record = result?;
         let tff_code = &record[7];
-        let confirm_tff_codes = vec!["099741", "097741", "096741", "232741", "090741", "092741", "112741"];
-        if !confirm_tff_codes.contains(&tff_code) {
+        
+        if confirm_tff_codes.contains(&tff_code) {
             writer.write_record(&record)?;
         }
-        writer.flush()?;
     }
-    println!("Processing successful. Filtered data saved to {}", output_path);
+    writer.flush()?;
+    println!("✅ Processing successful. Filtered data saved to {}", output_path);
     Ok(())
 }
 
