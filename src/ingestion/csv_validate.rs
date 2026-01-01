@@ -1,7 +1,7 @@
 
 pub fn validate_csv() -> Result<(), Box<dyn std::error::Error>> {
 
-    let file_path = "data/raw/cot/date-cot_report.csv"; // #todo change to dynamic path (most recent file)
+    let file_path = "data/raw/cot/date-raw_cot_report.csv"; // #todo change to dynamic path (most recent file)
 
     let mut reader = csv::Reader::from_path(file_path)?;
 
