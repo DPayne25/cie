@@ -11,7 +11,7 @@ pub fn csv_validate() -> Result<(), Box<dyn std::error::Error>> {
 
         let record = result?;
 
-        let tff_code = &record[7]; // TFF code is in the 8th column (index 7)
+        let tff_code = &record[3]; // TFF code is in the 8th column (index 7)
 
         let confirm_tff_codes = vec!["099741", "097741", "096741", "232741", "090741", "092741", "112741"];
         if confirm_tff_codes.contains(&tff_code) {
@@ -59,12 +59,12 @@ pub fn csv_process_raw_cot() -> Result<(), Box<dyn std::error::Error>> {
     let mut writer = csv::Writer::from_path(output_path)?;
 
     let confirm_tff_codes = vec!["099741", "097741", "096741", "232741", "090741", "092741", "112741"];
-
+    
 
     for result in reader.records() {
         let record = result?;
-        let tff_code = &record[7];
-        
+        let tff_code = &record[3];
+
         if confirm_tff_codes.contains(&tff_code) {
             writer.write_record(&record)?;
         }
