@@ -8,6 +8,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ingestion::fetch::fetch_cot_data().await?;
 
     ingestion::csv_logic::csv_validate()?;  
+
+    ingestion::csv_logic::csv_process_raw_cot()?; 
     
     ingestion::csv_logic::rename_csv()?;
 
