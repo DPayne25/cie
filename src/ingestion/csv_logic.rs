@@ -1,5 +1,5 @@
 use std::{fs, format, error::Error};
-use csv::ReaderBuilder;
+use csv;
 
 pub fn csv_validate() -> Result<(), Box<dyn std::error::Error>> {
 
