@@ -14,3 +14,8 @@ pub async fn fetch_cot_data() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 } 
+
+pub async fn fetch_fx_price_data() -> Result<(), Box<dyn std::error::Error>> {
+
+    let fx_data = ;
+}
