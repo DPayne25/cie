@@ -10,7 +10,7 @@ pub async fn fetch_cot_data() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("{}", cot_data);
 
-    fs::write("data/raw/cot/date-cot_report.csv", cot_data)?;
+    fs::write("data/raw/cot/date-RawCOTReport.csv", cot_data)?;
 
     Ok(())
 } 
