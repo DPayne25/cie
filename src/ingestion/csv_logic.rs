@@ -7,15 +7,19 @@ pub fn csv_validate() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut reader = csv::Reader::from_path(file_path)?;
 
+    let confirm_tff_codes = vec!["099741", "097741", "096741", "232741", "090741", "092741", "112741"];
+
     for result in reader.records() {
 
         let record = result?;
 
-        let tff_code = &record[3]; // TFF code is in the 8th column (index 7)
+        let tff_code = &record[3];
 
-        let confirm_tff_codes = vec!["099741", "097741", "096741", "232741", "090741", "092741", "112741"];
+        
         if confirm_tff_codes.contains(&tff_code) {
-            return Err(format!("TFF code found: {}", tff_code).into());
+
+            return !("TFF code found: {}", tff_code).into();
+            
         }
     
     }
