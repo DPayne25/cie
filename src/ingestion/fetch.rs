@@ -30,7 +30,7 @@ pub async fn fetch_fx_price_data(
 
     let client = reqwest::Client::new();
 
-        let get_data = client.get(&format!("https://api-fxtrade.oanda.com/v3/instruments/{}/candles", instrument))
+    let get_data = client.get(&format!("https://api-fxtrade.oanda.com/v3/instruments/{}/candles", instrument))
         .header("Authorization", format!("Bearer {}", api_key))
         .query(&[
             ("price", price_type),
@@ -42,7 +42,8 @@ pub async fn fetch_fx_price_data(
         .error_for_status()?;
 
     let fx_data = get_data.text().await?;
-    println!("{}", fx_data);
+    
+    fs::write(format!("data/raw/fx_prices/{}_{}_{}_RawFXPriceData.json", instrument, from_date, granualarity), fx_data)?;
 
     Ok(())
 } 
