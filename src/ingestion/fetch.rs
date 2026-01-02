@@ -1,9 +1,6 @@
 use std::{fs, env};
 use reqwest;
-#[allow(unused_imports)]
-use reqwest::{RequestBuilder, Response, Client, Request};
-#[allow(unused_imports)]
-use chrono;
+
 
 pub async fn fetch_cot_data() -> Result<(), Box<dyn std::error::Error>> {
     
@@ -20,7 +17,7 @@ pub async fn fetch_cot_data() -> Result<(), Box<dyn std::error::Error>> {
 } 
 
 pub async fn fetch_fx_price_data(
-    insturment: &str, 
+    instrument: &str, 
     from_date: &str, 
     granularity: &str, 
     price_type: &str
@@ -43,7 +40,7 @@ pub async fn fetch_fx_price_data(
 
     let fx_data = get_data.text().await?;
     
-    fs::write(format!("data/raw/fx_prices/{}_{}_{}_RawFXPriceData.json", instrument, from_date, granualarity), fx_data)?;
+    fs::write(format!("data/raw/fx_prices/{}_{}_{}_RawFXPriceData.json", instrument, from_date, granularity), fx_data)?;
 
     Ok(())
 } 
