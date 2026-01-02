@@ -40,7 +40,7 @@ Goal: Lock the objective and scope.
     > - **Target Contracts (TFF Codes):**
     >     - Euro (099741)
     >     - Japanese Yen (097741)
-    >     - British Pound Sterling (096741)
+    >     - British Pound Sterling (096742)
     >     - Australian Dollar (232741)
     >     - Canadian Dollar (090741)
     >     - Swiss Franc (092741)
@@ -196,7 +196,7 @@ Goal: Map futures contracts and design the Postgres schema. No code until this i
 | ----------------------------- | -------- | ------- |
 | Euro                          | 099741   | EURUSD  |
 | Japanese Yen                  | 097741   | USDJPY  |
-| British Pound Sterling        | 096741   | GBPUSD  |
+| British Pound Sterling        | 096742   | GBPUSD  |
 | Australian Dollar             | 232741   | AUDUSD  |
 | Canadian Dollar               | 090741   | USDCAD  |
 | Swiss Franc                   | 092741   | USDCHF  |
@@ -336,9 +336,10 @@ Execution & Solution:
 
 `Naming the File`: https://web.mit.edu/rust-lang_v1.25/arch/amd64_ubuntu1404/share/doc/rust/html/book/second-edition/ch12-02-reading-a-file.html
 
-- [ ] Normalize dates & fields.
+- [x] Normalize dates & fields.
 
 Execution & Solution:
+Main solution was to keep the vector outside of the for loop and ensure correct index.
 
 - [ ] Insert raw data into Postgres.
 
