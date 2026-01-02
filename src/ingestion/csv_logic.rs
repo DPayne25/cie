@@ -1,28 +1,30 @@
-use std::{fs, format, error::Error};
-use csv;
+use std::{error::Error, format, fs, fs::File};
+#[allow(unused_imports)]
+use csv::{ReaderBuilder, Reader, WriterBuilder, Writer};
 
 pub fn csv_validate() -> Result<(), Box<dyn std::error::Error>> {
 
     let file_path = "data/raw/cot/date-RawCOTReport.csv"; // #todo change to dynamic path (most recent file)
 
-    let mut reader = csv::Reader::from_path(file_path)?;
+    let file = File::open(file_path)?;
+
+    let mut reader = csv::ReaderBuilder::new().has_headers(false).from_reader(file);
 
     let confirm_tff_codes = vec!["099741", "097741", "096741", "232741", "090741", "092741", "112741"];
 
-    for result in reader.records() {
-
-        let record = result?;
-
-        let tff_code = &record[3];
-
-        
-        if confirm_tff_codes.contains(&tff_code) {
-
-            return !("TFF code found: {}", tff_code).into();
-            
+    for(i, result) in reader.records().enumerate() {
+        match result {
+            Ok(record) => {
+                if let Some(tff_code) = record.get(3) {
+                    if confirm_tff_codes.contains(&tff_code) {
+                        println!("✅ TFF code {} found in row {}", tff_code, i + 1); 
+                    }
+                }
+            }
+            Err(e) => eprintln!("Error reading row {}: {}", i + 1, e)
         }
-    
     }
+
     println!("✅ Successful CSV validation. Valid TFF codes are available.");
     Ok(())
 }
@@ -58,11 +60,13 @@ pub fn csv_process_raw_cot() -> Result<(), Box<dyn std::error::Error>> {
 
     let output_path = "data/processed/cot/date-ProcessedCOTReport.csv";
 
-    let mut reader = csv::Reader::from_path(input_path)?;
+    let input_file = File::open(&input_path)?;
+
+    let mut reader = ReaderBuilder::new().has_headers(false).from_reader(input_file);
 
     let mut writer = csv::Writer::from_path(output_path)?;
 
-    let confirm_tff_codes = vec!["099741", "097741", "096741", "232741", "090741", "092741", "112741"];
+    let confirm_tff_codes = vec!["099741", "097741", "096741", "232741", "090741", "092742", "112741"];
     
 
     for result in reader.records() {
