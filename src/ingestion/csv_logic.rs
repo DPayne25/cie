@@ -10,8 +10,7 @@ pub fn csv_validate() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut reader = csv::ReaderBuilder::new().has_headers(false).from_reader(file);
 
-    let confirm_tff_codes = vec!["099741", "097741", "096741", "232741", "090741", "092741", "112741"];
-
+    let confirm_tff_codes = vec!["090741","092741", "096742", "097741", "099741", "232741", "112741"];
     for(i, result) in reader.records().enumerate() {
         match result {
             Ok(record) => {
@@ -66,7 +65,7 @@ pub fn csv_process_raw_cot() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut writer = csv::Writer::from_path(output_path)?;
 
-    let confirm_tff_codes = vec!["099741", "097741", "096741", "232741", "090741", "092742", "112741"];
+    let confirm_tff_codes = vec!["090741","092741", "096742", "097741", "099741", "232741", "112741"];
     
 
     for result in reader.records() {
