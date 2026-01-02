@@ -4,8 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+chrono = "0.4.42"
 csv = "1.4.0"
 openssl = "0.10.75"
-reqwest = "0.13.1"
-serde = "1.0.228"
+reqwest = { version = "0.13.1", features = ["json"]}
+serde = { version = "1.0.228", features = ["derive"] }
 tokio = { version = "1.48.0", features = ["full"] }
