@@ -2,7 +2,8 @@ use std::{fs, env};
 use chrono::{DateTime, Utc, TimeZone};
 use dotenvy::dotenv;
 use fxoanda::*;
-use reqwest::Client;
+
+
 
 pub async fn fetch_cot_data() -> Result<(), Box<dyn std::error::Error>> {
     
@@ -19,8 +20,9 @@ pub async fn fetch_cot_data() -> Result<(), Box<dyn std::error::Error>> {
 } 
 
 pub async fn fetch_fx_price_data(
+    client: &reqwest::Client,
     instrument: &str, 
-    //from_date: DateTime<Utc>, Add loop to input into `dt` below #todo so input varies on input
+    from_date: DateTime<Utc>, 
     granularity: &str, 
     price_type: &str
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -33,20 +35,20 @@ pub async fn fetch_fx_price_data(
 
     let api_key = env::var("OANDA_API_KEY").map_err(|_| "OANDA_API_KEY not set in .env file")?;
 
-    let baseclient = reqwest::Client::new();
-
-    let client= fxoanda::Client {
+    let oanda_client= fxoanda::Client {
         host: "api-fxtrade.oanda.com".to_string(),
-        reqwest: baseclient,
-        authentication: String::from(api_key)
+        reqwest: client.clone(),
+        authentication: api_key.to_string()
     };
+
+    //let from_date_str = from_date.to_rfc3339();
 
     let mut get_data = fxoanda::GetInstrumentCandlesRequest::new()
         .with_instrument(instrument.to_string())
-        .with_from(from_date)
-        .with_granularity(CandlestickGranularity::from_str(granularity)?)
+        .with_from(dt)
+        .with_granularity(fxoanda::CandlestickGranularity::granularity)
         .with_price(price_type.to_string())
-        .remote(&client).await;
+        .remote(&oanda_client).await;
 
 
 
