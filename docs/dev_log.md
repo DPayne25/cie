@@ -339,7 +339,12 @@ Execution & Solution:
 - [x] Normalize dates & fields.
 
 Execution & Solution:
-Main solution was to keep the vector outside of the for loop and ensure correct index.
+    Main solution was to keep the vector outside of the for loop and ensure correct index.
+
+    Also asynchronously downloaded the FX price data using `futures` crate.
+
+    I decided unapologetically use the AI along this process to teach me and expose me to new concepts and not write any code for so I have a particular prop that I'm going to include below so that can use it for future segments of the project and future projects:
+    >"I need you to stop writing code for me. Just think through the problems with me. And if I need help on code, I will explicitly ask you and initially give me the link to the documentation so I can do my own research and figure it out for myself. And if I keep struggling with it, and if I press you to actually give me the code or at least a suggestive code to improve I would ask you to give me an example instead of the explicit code. Do you understand?"
 
 - [ ] Insert raw data into Postgres.
 
