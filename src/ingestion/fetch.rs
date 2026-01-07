@@ -28,9 +28,6 @@ pub async fn fetch_fx_price_data(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let dt: DateTime<Utc> = Utc.with_ymd_and_hms(2016, 1, 1, 0, 0, 0).unwrap(); //todo line 23
 
-    //let oanda_time_format = dt.to_rfc3339();
-
-    let from_date = dt.format("%Y-%m-%dT%H:%M:%S%.9fZ").to_string();
     dotenv().ok();
 
     let api_key = env::var("OANDA_API_KEY").map_err(|_| "OANDA_API_KEY not set in .env file")?;
