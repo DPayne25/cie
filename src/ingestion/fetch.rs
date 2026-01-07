@@ -26,7 +26,7 @@ pub async fn fetch_fx_price_data(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let dt: DateTime<Utc> = Utc.with_ymd_and_hms(2016, 1, 1, 15, 0, 0).unwrap(); //todo line 23
 
-    let oanda_time_format: DateTime<Utc>= dt.to_rfc3339().;
+    let oanda_time_format = dt.to_rfc3339();
 
     let from_date = dt.format("%Y-%m-%dT%H:%M:%S%.9fZ").to_string();
     dotenv().ok();
@@ -50,7 +50,7 @@ pub async fn fetch_fx_price_data(
 
 
 
-    let fx_data = get_data.text().await?;
+    let fx_data = get_data?.text().await?;
     
     fs::write(format!("data/raw/fx_prices/{}_{}_{}_RawFXPriceData.json", instrument, from_date, granularity), fx_data)?;
 
