@@ -26,7 +26,7 @@ pub async fn fetch_fx_price_data(
     granularity: &str, 
     price_type: &str
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let dt: DateTime<Utc> = Utc.with_ymd_and_hms(2016, 1, 1, 15, 0, 0).unwrap(); //todo line 23
+    let dt: DateTime<Utc> = Utc.with_ymd_and_hms(2016, 1, 1, 0, 0, 0).unwrap(); //todo line 23
 
     //let oanda_time_format = dt.to_rfc3339();
 
@@ -48,6 +48,7 @@ pub async fn fetch_fx_price_data(
         .with_from(dt)
         .with_granularity(fxoanda::CandlestickGranularity::D)
         .with_price(price_type.to_string())
+        .with_count(5000)
         .remote(&oanda_client).await;
 
 
@@ -56,9 +57,9 @@ pub async fn fetch_fx_price_data(
 
     let candles = fx_data.candles;
 
-    let json = serde_json::to_string(&candles)?;
+    let json = serde_json::to_string_pretty(&candles)?;
 
-    fs::write(format!("data/raw/fx_prices/{}_{}_{}_RawFXPriceData.csv", instrument, from_date, granularity), json)?;
+    fs::write(format!("data/raw/fx_prices/{}_{}_RawFXPriceData.json", instrument, granularity), json)?;
 
     Ok(())
 } 
