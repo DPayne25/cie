@@ -11,7 +11,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   
     ingestion::fetch::fetch_cot_data().await?;
 
-    ingestion::fetch::fetch_fx_price_data(&client, "EUR_USD", start_date, "M").await?;
+    ingestion::fetch::fetch_fx_price_data(&client, "EUR_USD", start_date, "D", "M").await?;
 
     ingestion::csv_logic::csv_validate()?;  
 
