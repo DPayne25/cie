@@ -16,14 +16,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "NZD_USD"];
 
     let client = reqwest::Client::new();
-    //let start_date = "2016-01-01T15:00:00.000000000Z".parse::<DateTime<Utc>>().unwrap();
   
     ingestion::fetch::fetch_cot_data().await?;
 
     let fetch_all_fx_data = fx_pairs.iter().map(|pair| {
         ingestion::fetch::fetch_fx_price_data(&client, pair, "D", "M")
     });
-
+    
     join_all(fetch_all_fx_data).await;
 
     ingestion::csv_logic::csv_validate()?;  
