@@ -1,13 +1,17 @@
 mod ingestion;
+use chrono::{DateTime, Utc};
 
 
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+
+    let client = reqwest::Client::new();
+    let start_date = "2016-01-01T15:00:00.000000000Z".parse::<DateTime<Utc>>().unwrap();
   
     ingestion::fetch::fetch_cot_data().await?;
 
-    ingestion::fetch::fetch_fx_price_data("EUR_USD", "2016-01-01T15%3A00%3A00.000000000Z", "D", "M").await?;
+    ingestion::fetch::fetch_fx_price_data(&client, "EUR_USD", start_date, "D", "M").await?;
 
     ingestion::csv_logic::csv_validate()?;  
 
