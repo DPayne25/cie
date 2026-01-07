@@ -12,8 +12,6 @@ pub async fn fetch_cot_data() -> Result<(), Box<dyn std::error::Error>> {
         .text()
         .await?;
 
-    println!("{}", cot_data);
-
     fs::write("data/raw/cot/date-RawCOTReport.csv", cot_data)?;
 
     Ok(())
