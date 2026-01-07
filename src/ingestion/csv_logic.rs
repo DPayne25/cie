@@ -45,7 +45,7 @@ pub fn rename_csv() -> Result<(), Box<dyn Error>> {
     fs::rename(path2, &new_path2)?;
 
     // Confirm rename
-    println!("✅ Successfully renamed file to {}\n", new_path1); 
+    println!("✅ Successfully renamed file to {}", new_path1); 
     println!("✅ Successfully renamed file to {}", new_path2); 
 
     Ok(())
