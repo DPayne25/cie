@@ -56,7 +56,7 @@ pub async fn fetch_fx_price_data(
 
     let candles = fx_data.candles;
 
-    let json = serde_json::to_string_pretty(&candles)?;
+    let json = serde_json::to_string(&candles)?;
 
     fs::write(format!("data/raw/fx_prices/{}_{}_{}_RawFXPriceData.csv", instrument, from_date, granularity), json)?;
 
