@@ -23,7 +23,7 @@ pub async fn fetch_fx_price_data(
     client: &reqwest::Client,
     instrument: &str, 
     from_date: DateTime<Utc>, 
-    //granularity: &str, 
+    granularity: &str, 
     price_type: &str
 ) -> Result<(), Box<dyn std::error::Error>> {
     let dt: DateTime<Utc> = Utc.with_ymd_and_hms(2016, 1, 1, 15, 0, 0).unwrap(); //todo line 23
