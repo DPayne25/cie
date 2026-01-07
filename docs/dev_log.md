@@ -339,12 +339,20 @@ Execution & Solution:
 - [x] Normalize dates & fields.
 
 Execution & Solution:
-    Main solution was to keep the vector outside of the for loop and ensure correct index.
 
-    Also asynchronously downloaded the FX price data using `futures` crate.
+Main solution was to keep the vector outside of the for loop and ensure correct index.
 
-    I decided unapologetically use the AI along this process to teach me and expose me to new concepts and not write any code for so I have a particular prop that I'm going to include below so that can use it for future segments of the project and future projects:
-    >"I need you to stop writing code for me. Just think through the problems with me. And if I need help on code, I will explicitly ask you and initially give me the link to the documentation so I can do my own research and figure it out for myself. And if I keep struggling with it, and if I press you to actually give me the code or at least a suggestive code to improve I would ask you to give me an example instead of the explicit code. Do you understand?"
+Also asynchronously downloaded the FX price data using `futures` crate.
+
+I decided unapologetically use the AI along this process to teach me and expose me to new concepts and not write any code for so I have a particular prop that I'm going to include below so that can use it for future segments of the project and future projects:
+
+> Pre Chat Prompt:
+> 
+    >  "I need you to stop writing code for me. Just think through the problems with me. And if I need help on code, I will explicitly ask you and initially give me the link to the documentation so I can do my own research and figure it out for myself. And if I keep struggling with it, and if I press you to actually give me the code or at least a suggestive code to improve I would ask you to give me an example instead of the explicit code. Do you understand?"
+
+>Post Chat Prompt: 
+>
+    >"Now. What I want you to do is summarize this particular. conversation include all the documentations and connected to the segments that solve the problem like this documentation documentation helped us solve this particular problem. Okay, and really make it simple to read because I will be reviewing it and going to the documentation. For myself and recognize also that I will be pacing this into my obsidian note folder or no Vault. So put it in markdown and Link it to particular lines so that it's easily referenceable for this was the problem or topic that we talked about and this was the documentation that links to that and not like you to put it in kind of like a bullet point format the best that you can you can include headers as well to just categorize the issue and if you want to add a brief description that you section don't make it any more than four sentences long. Got it. Do you need any clarification?"
 
 - [ ] Insert raw data into Postgres.
 
