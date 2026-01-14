@@ -3,28 +3,6 @@
 version = 4
 
 [[package]]
-name = "FXCOTDashboard"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "csv",
- "dotenvy",
- "futures",
- "fxoanda",
- "fxoanda_definitions",
- "openssl",
- "postgres",
- "reqwest",
- "serde",
- "serde_derive",
- "serde_json",
- "sqlx",
- "time",
- "tokio",
- "tokio-postgres",
-]
-
-[[package]]
 name = "allocator-api2"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1625,6 +1603,28 @@ checksum = "cc1f0cbffaac4852523ce30d8bd3c5cdc873501d96ff467ca09b6767bb8cd5c0"
 dependencies = [
  "core-foundation-sys",
  "libc",
+]
+
+[[package]]
+name = "sentinel_iaie"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "csv",
+ "dotenvy",
+ "futures",
+ "fxoanda",
+ "fxoanda_definitions",
+ "openssl",
+ "postgres",
+ "reqwest",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "sqlx",
+ "time",
+ "tokio",
+ "tokio-postgres",
 ]
 
 [[package]]
