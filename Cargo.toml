@@ -13,6 +13,7 @@ fxoanda_definitions = "=0.1.1"
 openssl = "0.10.75"
 postgres = "0.19.12"
 reqwest = { version = "0.12.28", features = ["json"] }
+runtime-tokio = "0.0.0"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_derive = "=1.0.228"
 serde_json = "=1.0.149"
