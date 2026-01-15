@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum IngetionError {
+pub enum IngestionError {
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
     #[error("CSV parsing error: {0}")]
@@ -11,8 +11,9 @@ pub enum IngetionError {
     #[error("Environment variable error: {0}")]
     Env(#[from] std::env::VarError),
     #[error("Oanda API error: {0}")]
-    Oanda(#[from] fxoanda::Error),
+    /*Oanda(#[from] fxoanda::Error),
     #[error("JSON serialization error: {0}")]
+    */
     SerdeJson(#[from] serde_json::Error),
     #[error("Data validation error: {0}")]
     Validation(String),
