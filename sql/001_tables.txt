@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict DnS0mCac4zpKHd4ZzgmLp29t0aAEfuiHnNDweVGowqhxLsDcWu9zm9dRhbsMwiF
+--\restrict DnS0mCac4zpKHd4ZzgmLp29t0aAEfuiHnNDweVGowqhxLsDcWu9zm9dRhbsMwiF
 
 -- Dumped from database version 17.6 (Debian 17.6-0+deb13u1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-0+deb13u1)
@@ -101,5 +101,5 @@ ALTER TABLE ONLY public.weekly_sentiment
 -- PostgreSQL database dump complete
 --
 
-\unrestrict DnS0mCac4zpKHd4ZzgmLp29t0aAEfuiHnNDweVGowqhxLsDcWu9zm9dRhbsMwiF
+--\unrestrict DnS0mCac4zpKHd4ZzgmLp29t0aAEfuiHnNDweVGowqhxLsDcWu9zm9dRhbsMwiF
 

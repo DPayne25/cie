@@ -1,10 +1,15 @@
 mod ingestion;
+mod db;
 use futures::future::join_all;
 
 
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+
+    let _pool = db::connection::connect_db().await?;
+
+    println!("Database connected and schema synced!");
 
     let fx_pairs  = vec![
         "EUR_USD", 
