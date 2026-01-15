@@ -1,4 +1,5 @@
 CREATE TABLE public.raw_cot_reports (
+    market_names VARCHAR(100) NOT NULL UNIQUE,
     report_date DATE NOT NULL UNIQUE,
     tff_code VARCHAR(10) NOT NULL UNIQUE,
     trader_type VARCHAR(30) NOT NULL UNIQUE,
