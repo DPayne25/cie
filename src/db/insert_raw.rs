@@ -1,3 +1,4 @@
+/*
 use sqlx::{PgPool};
 
 pub async fn insert_raw_cot(pool: &PgPool, data: &Vec) -> Result<(), Box<dyn std::error::Error>>{
@@ -15,3 +16,4 @@ pub async fn insert_raw_cot(pool: &PgPool, data: &Vec) -> Result<(), Box<dyn std
 
     Ok(())
 }
+*/

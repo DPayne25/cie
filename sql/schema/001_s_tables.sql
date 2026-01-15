@@ -1,28 +1,28 @@
 CREATE TABLE public.raw_cot_reports (
-    report_date date NOT NULL,
-    tff_code character varying NOT NULL,
-    trader_type character varying NOT NULL,
-    long_positions integer,
-    short_positions integer,
-    net_positions integer,
-    change_from_prev integer
+    report_date DATE NOT NULL UNIQUE,
+    tff_code VARCHAR(10) NOT NULL UNIQUE,
+    trader_type VARCHAR(30) NOT NULL UNIQUE,
+    long_positions INT,
+    short_positions INT,
+    net_positions INT,
+    change_from_prev INT
 );
 
 CREATE TABLE public.raw_fx_prices (
-    date date NOT NULL,
-    symbol character varying(10) NOT NULL,
-    close_price numeric(18,5),
-    is_tuesday boolean
+    fx_price_date DATE NOT NULL UNIQUE,
+    symbol VARCHAR(10) NOT NULL UNIQUE,
+    close_price DECIMAL(18,5) UNIQUE,
+    is_tuesday BOOLEAN
 );
 
 CREATE TABLE public.weekly_sentiment (
-    report_date date NOT NULL,
-    symbol character varying(6) NOT NULL,
-    release_date date,
-    am_net_pos integer,
-    lf_net_pos integer,
-    price_tuesday numeric(18,5),
-    price_friday numeric(18,5),
-    price_delta_percent numeric(18,5),
-    market_repsonse character varying(50)
+    report_date DATE NOT NULL UNIQUE,
+    symbol VARCHAR(6) NOT NULL UNIQUE,
+    release_date DATE,
+    am_net_pos INT,
+    lf_net_pos INT,
+    price_tuesday DECIMAL(18,5),
+    price_friday DECIMAL(18,5),
+    price_delta_percent DECIMAL(18,5),
+    market_repsonse VARCHAR(50)
 );
