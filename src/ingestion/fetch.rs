@@ -92,7 +92,7 @@ pub async fn fetch_fx_price_data(
 
 
 
-    let fx_data = get_data?;
+    let fx_data = get_data;
 
     let candles = fx_data.candles;
 
