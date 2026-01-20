@@ -1,5 +1,5 @@
 use std::{fs, env, path::Path};
-use chrono::{DateTime, Utc, TimeZone};
+use chrono::{DateTime, Utc};
 use dotenvy::dotenv;
 use fxoanda;
 use crate::ingestion::errors::IngestionError;
@@ -58,7 +58,7 @@ pub async fn fetch_cot_data(output_path: &Path) -> Result<(), IngestionError> {
         .text()
         .await?;
 
-    fs::write("data/raw/cot/date-RawCOTReport.csv", cot_data)?;
+    fs::write(output_path, cot_data)?;
 
     Ok(())
 } 

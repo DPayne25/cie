@@ -1,84 +1,122 @@
-use std::{error::Error, format, fs, fs::File};
+use std::{format, fs, fs::File, path::Path};
 #[allow(unused_imports)]
 use csv::{ReaderBuilder, Reader, WriterBuilder, Writer};
+use once_cell::sync::Lazy;
+use std::collections::HashSet;
+use crate::ingestion::errors::IngestionError;
 
-pub fn csv_validate() -> Result<(), Box<dyn std::error::Error>> {
 
-    let file_path = "data/raw/cot/date-RawCOTReport.csv"; // #todo change to dynamic path (most recent file)
+static TFF_CODES: Lazy <HashSet<&'static str>> = Lazy::new(|| {
+    let mut s = HashSet::new();
+    s.insert("090741");
+    s.insert("092741");
+    s.insert("096742");
+    s.insert("097741");
+    s.insert("099741");
+    s.insert("232741");
+    s.insert("112741");
+    s
+});
 
+pub fn extract_cot_date(file_path: &Path) -> Result<String, IngestionError> {
     let file = File::open(file_path)?;
+    let mut reader = ReaderBuilder::new().has_headers(false).from_reader(file);
 
-    let mut reader = csv::ReaderBuilder::new().has_headers(false).from_reader(file);
+    let record = reader.record()
+        .nth(1)
+        .ok_or_else(|| IngestionError::MissingData(
+            format!("No date found in the third column of the second rose in COT file: {}", file_path.display())
+        ))?;
 
-    let confirm_tff_codes = vec!["090741","092741", "096742", "097741", "099741", "232741", "112741"];
+    if cot_date.is_empty() || cot_date.len() < 8 {
+        return Err(IngestionError::InvalidDate(format!("Extracted COT date '{}' seems invalid.", cot_date)));
+    }
+
+    Ok(cot_date.to_string())
+}
+
+pub fn csv_validate(input_path: &Path) -> Result<(), IngestionError> {
+
+    let file = File::open(input_path)?;
+
+    let mut reader = ReaderBuilder::new().has_headers(false).from_reader(file);
+
+    let mut valid_codes_found = false;
+
     for(i, result) in reader.records().enumerate() {
         match result {
             Ok(record) => {
                 if let Some(tff_code) = record.get(3) {
-                    if confirm_tff_codes.contains(&tff_code) {
-                        println!("✅ TFF code {} found in row {}", tff_code, i + 1); 
+                    if TFF_CODES.contains(&tff_code) {
+                        println!("• TFF code {} found in row {}", tff_code, i + 1); 
+
+                        valid_codes_found = true;                        
                     }
                 }
             }
-            Err(e) => eprintln!("Error reading row {}: {}", i + 1, e)
+            Err(e) => {
+                eprintln!("• Error reading row {}: {}", i + 1, e);
+                return Err(IngestionError::Csv(e));
+            }
         }
     }
 
-    println!("✅ Successful CSV validation. Valid TFF codes are available.");
+    if !valid_codes_found {
+        return Err(IngestionError::Validation(
+            format!("• No vlid Tff codes found in file: {}", input_path.display())));
+    }
+
+    println!("• Successful CSV validation. Valid TFF codes are available.");
     Ok(())
 }
 
 
-pub fn rename_csv() -> Result<(), Box<dyn Error>> {
-    let path1 = "data/raw/cot/date-RawCOTReport.csv";
-    let path2 = "data/processed/cot/date-ProcessedCOTReport.csv";
-    let mut reader = csv::Reader::from_path(path1)?;
+pub fn csv_process_raw_cot(input_path: &Path, output_path: &Path) -> Result<(), IngestionError> {
 
-    let record = reader.records().nth(1).ok_or("Error: No second row found")??;
-
-    let cot_date = record.get(2).ok_or("Error: No date found in the third column")?;
-
-    let new_path1 = format!("data/raw/cot/{}-RawCOTReport.csv", cot_date);
-    let new_path2 = format!("data/processed/cot/{}-ProcessedCOTReport.csv", cot_date);
-
-    fs::rename(path1, &new_path1)?;
-    fs::rename(path2, &new_path2)?;
-
-    // Confirm rename
-    println!("✅ Successfully renamed file to {}", new_path1); 
-    println!("✅ Successfully renamed file to {}", new_path2); 
-
-    Ok(())
-}
-
-
-
-pub fn csv_process_raw_cot() -> Result<(), Box<dyn std::error::Error>> {
-
-    let input_path = "data/raw/cot/date-RawCOTReport.csv";
-
-    let output_path = "data/processed/cot/date-ProcessedCOTReport.csv";
-
-    let input_file = File::open(&input_path)?;
-
+    let input_file = File::open(input_path);
     let mut reader = ReaderBuilder::new().has_headers(false).from_reader(input_file);
 
-    let mut writer = csv::Writer::from_path(output_path)?;
-
-    let confirm_tff_codes = vec!["090741","092741", "096742", "097741", "099741", "232741", "112741"];
-    
+    let mut writer = WriterBuilder::new().from_path(output_path)?;
 
     for result in reader.records() {
         let record = result?;
-        let tff_code = &record[3];
-
-        if confirm_tff_codes.contains(&tff_code) {
+        let tff_code = record.get(3).ok_or_else(|| {
+            IngestionError::Validation(format!("Missing TFF code in record: {:?}", record))
+        })?;
+        if TFF_CODES.contains(tff_code) {
             writer.write_record(&record)?;
         }
     }
+
     writer.flush()?;
-    println!("✅ Processing successful. Filtered data saved to {}", output_path);
+    println!("• Processing successful. Filtered data saved to {}", output_path.display());
     Ok(())
 }
 
 
+pub fn finalize_cot_filenames(
+    raw_temp_path: &Path,
+    raw_final_path: &Path,
+    processed_temp_path: &Path,
+    processed_final_path: &Path
+) -> Result<(), IngestionError> {
+    if let Some(parent) = raw_final_path.parent() {
+        fs::create_dir_all(parent).map_err(|e| IngestionError::Io)?;
+    }    
+
+    if let Some(parent) = processed_final_path.parent() {
+        fs::create_dir_all(parent).map_err(|e| IngestionError::Io)?;
+    }
+
+    fs::rename(raw_temp_path, raw_final_path)
+        .map_err(|e| IngestionError::FsOperation(format!("• Failed to rename raw COT file from {} to {}: {}", raw_temp_path.display(), raw_final_path, e)))?;
+
+    fs::rename(processed_temp_path, processed_final_path)
+        .map_err(|e| IngestionError::FsOperation(format!("• Failed to rename processed COT file from {} to {}: {}", processed_temp_path.display(), processed_final_path, e)))?;
+
+    println!("• Successfully finalized raw COT file to {}", raw_final_path.display());
+
+    println!("• Successfully finalized processed COT file to {}", processed_final_path.display());
+
+    Ok(())
+}

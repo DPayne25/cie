@@ -1615,6 +1615,7 @@ dependencies = [
  "futures",
  "fxoanda",
  "fxoanda_definitions",
+ "once_cell",
  "openssl",
  "postgres",
  "reqwest",
