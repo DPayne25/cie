@@ -31,7 +31,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     ingestion::csv_logic::rename_csv()?;
 
-   println!("✅ Mission Complete: Ingestion Completed Successfully.");
+   println!("• Mission Complete: Ingestion Completed Successfully.");
 
 
     Ok(())
