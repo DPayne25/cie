@@ -1,8 +1,9 @@
 mod ingestion;
 mod db;
 use futures::future::join_all;
-use std::path::{PathBuf};
+use std::{sync::Arc, path::PathBuf};
 use chrono::{Utc, TimeZone};
+use tokio::sync::Semaphore;
 use crate::ingestion::errors::IngestionError;
 
 
@@ -23,6 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "USD_CHF", 
         "NZD_USD"];
 
+    let config = Arc::new(AppConfig::from()?);
     let client = reqwest::Client::new();
 
     let raw_cot_temp_path = PathBuf::from("data/raw/cot/latest_cot_raw.csv");

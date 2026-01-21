@@ -4,7 +4,6 @@ use dotenvy::dotenv;
 use fxoanda;
 use futures_util::StreamExt;
 use tokio::io::AsyncWriteExt;
-use bytes_stream::BytesStream;
 use crate::ingestion::errors::IngestionError;
 
 #[derive(Debug, Clone, Copy)]
