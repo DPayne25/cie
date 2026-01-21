@@ -4,10 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+bytes-stream = "0.0.3"
 chrono = "0.4.42"
 csv = "1.4.0"
 dotenvy = "0.15.7"
 futures = "0.3.31"
+futures-util = "0.3.31"
 fxoanda = "0.2.0"
 fxoanda_definitions = "=0.1.1"
 once_cell = "1.21.3"
@@ -22,3 +24,4 @@ thiserror = "2.0.17"
 time = "=0.3.44"
 tokio = { version = "1.48.0", features = ["full"] }
 tokio-postgres = "0.7.15"
+tokio-stream = "0.1.18"

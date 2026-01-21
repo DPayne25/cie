@@ -2,6 +2,9 @@ use std::{fs, env, path::Path};
 use chrono::{DateTime, Utc};
 use dotenvy::dotenv;
 use fxoanda;
+use futures_util::StreamExt;
+use tokio::io::AsyncWriteExt;
+use bytes_stream::BytesStream;
 use crate::ingestion::errors::IngestionError;
 
 #[derive(Debug, Clone, Copy)]
@@ -53,12 +56,17 @@ impl From<PriceType> for String {
 }
 
 pub async fn fetch_cot_data(output_path: &Path) -> Result<(), IngestionError> {
-    let cot_data = reqwest::get("https://www.cftc.gov/dea/newcot/FinFutWk.txt")
-        .await?
-        .text()
-        .await?;
+    let cot_data = reqwest::get("https://www.cftc.gov/dea/newcot/FinFutWk.txt").await?;
 
-    fs::write(output_path, cot_data)?;
+    let mut file = tokio::fs::File::create(output_path).await.map_err(IngestionError::Io)?;
+    let mut stream = cot_data.bytes_stream();
+
+    while let Some(item) = stream.next().await {
+        let chunk = item.map_err(IngestionError::Reqwest)?;
+        file.write_all(&chunk).await.map_err(IngestionError::Io)?;
+    }
+
+    file.flush().await.map_err(IngestionError::Io)?;
 
     Ok(())
 } 
