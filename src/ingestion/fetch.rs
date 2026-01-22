@@ -1,11 +1,11 @@
-use std::{fs, env};
+use std::{fs, env, error::Error};
 use tokio::fs;
 use chrono::{DateTime, Utc, TimeZone};
 use fxoanda;
 use crate::config::OandaConfig;
 
 
-pub async fn fetch_cot_data() -> Result<(), Box<dyn std::error::Error>> {
+pub async fn fetch_cot_data() -> Result<(), Box<dyn Error>> {
     
     let cot_data = reqwest::get("https://www.cftc.gov/dea/newcot/FinFutWk.txt")
         .await?
@@ -19,16 +19,16 @@ pub async fn fetch_cot_data() -> Result<(), Box<dyn std::error::Error>> {
 
 pub async fn fetch_fx_price_data(
     client: &reqwest::Client,
-    config: &OandaConfig,
+    config: &SentinelConfig,
     instrument: &str,  
     granularity: &str, 
     price_type: &str
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn Error>> {
 
     let dt: DateTime<Utc> = Utc.with_ymd_and_hms(2016, 1, 1, 0, 0, 0).unwrap(); //todo line 23
 
 
-    let api_key: String = config.api_key.clone();
+    let api_key: String = config.oanda_api_key.clone();
 
     let oanda_client= fxoanda::Client {
         host: "api-fxtrade.oanda.com".to_string(),
