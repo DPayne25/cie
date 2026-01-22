@@ -1,4 +1,4 @@
-use std::{fs, env, error::Error};
+use std::{env, error::Error};
 use tokio::fs;
 use chrono::{DateTime, Utc, TimeZone};
 use fxoanda;
@@ -20,6 +20,7 @@ pub async fn fetch_cot_data() -> Result<(), Box<dyn Error>> {
 pub async fn fetch_fx_price_data(
     client: &reqwest::Client,
     config: &SentinelConfig,
+    pool: sqlx::PgPool,
     instrument: &str,  
     granularity: &str, 
     price_type: &str
@@ -54,7 +55,8 @@ pub async fn fetch_fx_price_data(
 
     let json = serde_json::to_string_pretty(&candles)?;
 
-    fs::write(format!("data/raw/fx_prices/{}_{}_RawFXPriceData.json", instrument, granularity), json)?;
+//    fs::write(format!("data/raw/fx_prices/{}_{}_RawFXPriceData.json", instrument, granularity), json)?;
+    
 
     Ok(())
 } 
