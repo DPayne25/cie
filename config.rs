@@ -1,6 +1,7 @@
 struct SentinelConfig {
 
      oanda_api_key: String,
+     oanda_host: String,
      database_url: String
 
 }
@@ -12,9 +13,10 @@ impl SentinelConfig {
         dotenv::from_filename(".env").ok();
 
         let oanda_api_key = env::var("OANDA_API_KEY")?;
+        let oanda_host = env::var("OANDA_HOST")?;
         let database_url = env::var("DATABASE_URL")?;
 
-         Ok(Self {oanda_api_key: oanda_api_key, database_url: database_url})
+         Ok(Self {oanda_api_key: oanda_api_key, oanda_host: oanda_host, database_url: database_url})
 
     }
 }

@@ -16,7 +16,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         "USD_CHF", 
         "NZD_USD"];
 
-    let config = config::OandaConfig::from_env()?;
+    let config = config::SentinelConfig::from_env()?;
     
     let client = reqwest::Client::new();
   
