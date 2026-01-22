@@ -33,11 +33,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     join_all(fetch_all_fx_data).await;
 
-    ingestion::csv_logic::csv_validate()?;  
-
-    ingestion::csv_logic::csv_process_raw_cot()?; 
+    ingestion::data_processor::process_cot_report()?;  
     
-    ingestion::csv_logic::rename_csv()?;
 
    println!("• Mission Complete: Ingestion Completed Successfully.");
 
