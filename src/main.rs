@@ -26,8 +26,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             &client,
             config, 
             pair, 
-            "D", 
-            "M")
+            D, 
+            M)
     });
     
     join_all(fetch_all_fx_data).await;
