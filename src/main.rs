@@ -2,7 +2,6 @@ mod ingestion;
 use futures::future::join_all;
 
 
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
@@ -15,12 +14,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "USD_CHF", 
         "NZD_USD"];
 
+    let config = config::OandaConfig::from_env()?;
+    
     let client = reqwest::Client::new();
   
     ingestion::fetch::fetch_cot_data().await?;
 
     let fetch_all_fx_data = fx_pairs.iter().map(|pair| {
-        ingestion::fetch::fetch_fx_price_data(&client, 
+        ingestion::fetch::fetch_fx_price_data(
+            &client,
+            config, 
             pair, 
             "D", 
             "M")
