@@ -23,10 +23,9 @@ pub async fn fetch_fx_price_data(
     pool: sqlx::PgPool,
     instrument: &str,  
     granularity: &str, 
-    price_type: &str
-) -> Result<(), Box<dyn Error>> {
-
-    let dt: DateTime<Utc> = Utc.with_ymd_and_hms(2016, 1, 1, 0, 0, 0).unwrap(); //todo line 23
+    price_type: &str,
+    default_start_date: DateTime<Utc>
+) -> Result<(), Box<dyn Error>> {//todo line 23
 
 
     let api_key: String = config.oanda_api_key.clone();
@@ -37,11 +36,10 @@ pub async fn fetch_fx_price_data(
         authentication: api_key.to_string()
     };
 
-    //let from_date_str = from_date.to_rfc3339();
 
     let get_data = fxoanda::GetInstrumentCandlesRequest::new()
         .with_instrument(instrument.to_string())
-        .with_from(dt)
+        .with_from(default_start_date)
         .with_granularity(granularity.into())
         .with_price(price_type.to_string())
         .with_count(5000)

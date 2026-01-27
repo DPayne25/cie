@@ -32,7 +32,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
             db_pool.clone(), 
             pair, 
             "D", 
-            "M")
+            "M",
+            config.default_start_date.clone()
+        )
     });
     
     join_all(fetch_all_fx_data).await;

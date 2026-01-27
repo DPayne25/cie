@@ -11,3 +11,14 @@ pub async fn connect_db(config: &SentinelConfig) -> Result<PgPool, Box<dyn Error
 
     Ok(db_pool)
 } 
+
+pub async fn get_latest_timestamp(config: &SentinelConfig, pool: &PgPool, symbol: &str) -> Result<Option<DateTime<Utc>>, Box<dyn Error>> {
+    
+    let latest_date: Option<DateTime<Utc>> = sqlx::query_scalar!(
+        "SELECT MAX(date) FROM raw_fx_prices WHERE symbol = $1", symbol
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(latest_date.unwrap_or(dt))
+}
