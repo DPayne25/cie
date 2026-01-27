@@ -1,0 +1,14 @@
+use crate::config::SentinelConfig;
+use sqlx::PgPool;
+use chrono::{DateTime, Utc};
+use std::error::Error;
+
+pub async fn get_latest_timestamp(date: DateTime<Utc>, pool: &PgPool, symbol: &str) -> Result<DateTime<Utc>, Box<dyn Error>> {
+    
+    let latest_date: DateTime<Utc> = sqlx::query_scalar!(
+        "SELECT MAX(date) FROM raw_fx_prices WHERE symbol = $1", symbol
+    )
+    .fetch_optional(pool)
+    .await?;
+    Ok(latest_date.unwrap_or(date))
+}

@@ -1,4 +1,5 @@
 mod ingestion;
+mod db;
 use futures::future::join_all;
 use sqlx::pool;
 use std::{path::Path, error::Error};
