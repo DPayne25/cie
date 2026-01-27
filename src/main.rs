@@ -33,8 +33,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             db_pool.clone(), 
             pair, 
             "D", 
-            "M",
-            config.default_start_date.clone()
+            "M"
         )
     });
     

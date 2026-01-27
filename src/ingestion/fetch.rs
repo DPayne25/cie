@@ -23,10 +23,12 @@ pub async fn fetch_fx_price_data(
     pool: sqlx::PgPool,
     instrument: &str,  
     granularity: &str, 
-    price_type: &str,
-    default_start_date: DateTime<Utc>
-) -> Result<(), Box<dyn Error>> {//todo line 23
+    price_type: &str
+) -> Result<(), Box<dyn Error>> {
 
+    let start_date: DateTime<Utc> = db::util::get_latest_timestamp(&pool, instrument)
+        .await?
+        .unwrap_or(config.default_start_date);
 
     let api_key: String = config.oanda_api_key.clone();
 
@@ -39,7 +41,7 @@ pub async fn fetch_fx_price_data(
 
     let get_data = fxoanda::GetInstrumentCandlesRequest::new()
         .with_instrument(instrument.to_string())
-        .with_from(default_start_date)
+        .with_from(start_date)
         .with_granularity(granularity.into())
         .with_price(price_type.to_string())
         .with_count(5000)
@@ -51,10 +53,27 @@ pub async fn fetch_fx_price_data(
 
     let candles = fx_data.candles;
 
-    let json = serde_json::to_string_pretty(&candles)?;
-
-//    fs::write(format!("data/raw/fx_prices/{}_{}_RawFXPriceData.json", instrument, granularity), json)?;
-    
+    for candle in candles { 
+        sqlx::query!(
+            "INSERT INTO raw_fx_prices (symbol, date, open, high, low, close, volume, complete) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (symbol, date) DO UPDATE SET 
+            date = EXCLUDED.date,
+            open = EXCLUDED.open,
+            high = EXCLUDED.high,
+            low = EXCLUDED.low,
+            close = EXCLUDED.close,
+            volume = EXCLUDED.volume,
+            complete = EXCLUDED.complete;",
+            instrument,
+            candle.time,
+            candle.mid.o,
+            candle.mid.h,
+            candle.mid.l,
+            candle.mid.c,
+            candle.volume,
+            candle.complete
+        ).execute(&pool).await?;
+    }
 
     Ok(())
 } 
