@@ -1,9 +1,10 @@
 use std::{env, error::Error, io::{Cursor}};
 use tokio::fs;
-use chrono::{DateTime, Utc, TimeZone};
+use chrono::{DateTime, TimeZone, Utc, format::parse};
 use fxoanda;
 use csv::ReaderBuilder;
 use serde::Deserialize;
+use zip::DateTime;
 
 //=======================================================================================================
 // COT Data Fetching
@@ -23,6 +24,7 @@ pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
         .ok_or("No .txt file found in the ZIP archive.")?;   
     
     let file = archive.by_index(index_zip)?;
+
     let cot_data = csv::ReaderBuilder::new()
         .delimiter(b',')
         .has_headers(true)
@@ -31,13 +33,37 @@ pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
 
     let target_tff_codes  = ["090741","092741", "096742", "097741", "099741", "232741", "112741", "095741", "120741", "216742", "233741"];
 
-    for result in cot_data.deserialize::<RawCOTRow>() {
+    let mut processed_cot: Vec<ProcessedCot> = Vec::new();
+
+    for result in cot_data.deserialize::<RawCot>() {
+
         let raw = result?;
 
         if !target_tff_codes.contains(&raw.tff_code.as_str()) {
             continue;
-        }
+        } 
+
         println!("• Processing Target: {} ({})", raw.market_name, raw.tff_code);
+        
+        processed_cot.push(ProcessedCot {
+            market_name: raw.market_name.clone(),
+            report_date: NaiveDate::parse_from_str(raw.report_date, "%Y-%m-%d")?.and_hms(0,0,0),
+            tff_code: raw.tff_code,
+            open_interest_all: raw.open_interest_all.clone().parse::<f64>()?,
+            dealer_long: parse_cftc_numbers(&raw.dealer_long),
+            dealer_short: parse_cftc_numbers(&raw.dealer_short),
+            dealer_spread: parse_cftc_numbers(&raw.dealer_spread),
+            asset_mgr_long: parse_cftc_numbers(&raw.asset_mgr_long),
+            asset_mgr_short: parse_cftc_numbers(&raw.asset_mgr_short),
+            asset_mgr_spread: parse_cftc_numbers(&raw.asset_mgr_spread),
+            lev_money_long: parse_cftc_numbers(&raw.lev_money_long),
+            lev_money_short: parse_cftc_numbers(&raw.lev_money_short),
+            lev_money_spread: parse_cftc_numbers(&raw.lev_money_spread),
+            other_rept_long: parse_cftc_numbers(&raw.other_rept_long),
+            other_rept_short: parse_cftc_numbers(&raw.other_rept_short),
+            other_rept_spread: parse_cftc_numbers(&raw.other_rept_spread),
+        });
+
     }
 
     Ok(())
@@ -51,7 +77,7 @@ pub fn parse_cftc_numbers(value: &str) -> i64 {
 }
 
 #[derive(Deserialize, Debug)]
-struct RawCOTRow{
+struct RawCot{
     #[serde(rename = "Market_and_Exchange_Names")]
     market_name: String,
     #[serde(rename = "Report_Date_as_YYYY-MM-DD")]
@@ -84,6 +110,41 @@ struct RawCOTRow{
     other_rept_short: String,
     #[serde(rename = "Other_Rept_Positions_Spread_All")]
     other_rept_spread: String,
+}
+#[derive(Deserialize, Debug)]
+struct ProcessedCot{
+    #[serde(rename = "Market_and_Exchange_Names")]
+    market_name: String,
+    #[serde(rename = "Report_Date_as_YYYY-MM-DD")]
+    report_date: DateTime<Utc>,
+    #[serde(rename = "CFTC_Contract_Market_Code")]
+    tff_code: String,
+    #[serde(rename = "Open_Interest_All")]
+    open_interest_all: f64,
+    #[serde(rename = "Dealer_Positions_Long_All")]
+    dealer_long: i64,
+    #[serde(rename = "Dealer_Positions_Short_All")]
+    dealer_short: i64,
+    #[serde(rename = "Dealer_Positions_Spread_All")]
+    dealer_spread: i64,
+    #[serde(rename = "Asset_Mgr_Positions_Long_All")]
+    asset_mgr_long: i64,
+    #[serde(rename = "Asset_Mgr_Positions_Short_All")]
+    asset_mgr_short: i64,
+    #[serde(rename = "Asset_Mgr_Positions_Spread_All")]
+    asset_mgr_spread: i64,
+    #[serde(rename = "Lev_Money_Positions_Long_All")]
+    lev_money_long: i64,
+    #[serde(rename = "Lev_Money_Positions_Short_All")]
+    lev_money_short: i64,
+    #[serde(rename = "Lev_Money_Positions_Spread_All")]
+    lev_money_spread: i64,
+    #[serde(rename = "Other_Rept_Positions_Long_All")]
+    other_rept_long: i64,
+    #[serde(rename = "Other_Rept_Positions_Short_All")]
+    other_rept_short: i64,
+    #[serde(rename = "Other_Rept_Positions_Spread_All")]
+    other_rept_spread: i64,
 }
 
 //=======================================================================================================
