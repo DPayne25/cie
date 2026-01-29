@@ -12,17 +12,24 @@ use serde::Deserialize;
 
 pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
     
-    let cot_data = reqwest::get(format!("https://www.cftc.gov/files/dea/history/com_disagg_txt_{}.zip", year))
+    let cot_request = reqwest::get(format!("https://www.cftc.gov/files/dea/history/com_disagg_txt_{}.zip", year))
         .await?
         .bytes()
         .await?;
 
-    let mut archive = ZipArchive::new(Cursor::from(cot_data))?;
+    let mut archive = ZipArchive::new(Cursor::from(cot_request))?;
     
-     let index = (0..archive.len())
+    let index = (0..archive.len())
         .find(|&i| {archive.by_index(i).unwrap().name().ends_with(".txt")})
         .ok_or("No .txt file found in the ZIP archive.")?;   
+    
     let file = archive.by_index(index)?;
+
+    let cot_data = csv::ReaderBuilder::new()
+        .delimiter(b',')
+        .has_headers(true)
+        .trim(csv::Trim::All)
+        .from_reader(file);
 
     Ok(())
 } 
