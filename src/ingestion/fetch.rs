@@ -2,7 +2,6 @@ use std::{env, error::Error, io::{Cursor}};
 use tokio::fs;
 use chrono::{DateTime, Utc, TimeZone};
 use fxoanda;
-use crate::config::OandaConfig;
 use csv::ReaderBuilder;
 use serde::Deserialize;
 
@@ -10,7 +9,7 @@ use serde::Deserialize;
 // COT Data Fetching
 //=======================================================================================================
 
-pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
+pub async fn fetch_cot_data(year: i32, config: &RawCotRow) -> Result<(), Box<dyn Error>> {
     
     let cot_request = reqwest::get(format!("https://www.cftc.gov/files/dea/history/com_disagg_txt_{}.zip", year))
         .await?

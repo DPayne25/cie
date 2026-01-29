@@ -37,7 +37,7 @@ impl SentinelConfig {
 struct RawCOTRow{
     #[serde(rename = "Market_and_Exchange_Names")]
     market_name: String,
-    #[serde(rename = "As_of_Date_In_Form_YYMMDD")]
+    #[serde(rename = "Report_Date_as_YYYY-MM-DD")]
     report_date: String,
     #[serde(rename = "CFTC_Contract_Market_Code")]
     tff_code: String,
