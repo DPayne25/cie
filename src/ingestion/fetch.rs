@@ -11,7 +11,7 @@ use serde::Deserialize;
 
 pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
     
-    let cot_request = reqwest::get(format!("https://www.cftc.gov/files/dea/history/com_disagg_txt_{}.zip", year))
+    let cot_request = reqwest::get(format!("https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip", year))
         .await?
         .bytes()
         .await?;
@@ -29,14 +29,15 @@ pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
         .trim(csv::Trim::All)
         .from_reader(file);
 
-    let target_tff_codes: HashSet<&str> = ["090741","092741", "096742", "097741", "099741", "232741", "112741"]
-        .iter()
-        .collect();
+    let target_tff_codes  = ["090741","092741", "096742", "097741", "099741", "232741", "112741", "095741", "120741", "216742", "233741"];
 
     for result in cot_data.deserialize::<RawCOTRow>() {
         let raw = result?;
 
-        if !target_tff_codes.contains(raw.)
+        if !target_tff_codes.contains(&raw.tff_code.as_str()) {
+            continue;
+        }
+        println!("• Processing Target: {} ({})", raw.market_name, raw.tff_code);
     }
 
     Ok(())
