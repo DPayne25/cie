@@ -1,4 +1,5 @@
-use std::{env, error::Error, io::{Cursor}};
+use std::{env, error::Error, io::{Cursor}, path::Path};
+use sqlx::{Executor, PgPool, QueryBuilder, query};
 use tokio::fs;
 use chrono::{DateTime, TimeZone, Utc, format::parse};
 use fxoanda;
@@ -10,7 +11,7 @@ use zip::DateTime;
 // COT Data Fetching
 //=======================================================================================================
 
-pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
+pub async fn fetch_cot_data(year: i64, pool: PgPool) -> Result<(), Box<dyn Error>> {
     
     let cot_request = reqwest::get(format!("https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip", year))
         .await?
@@ -21,7 +22,7 @@ pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
     
     let index_zip = (0..archive.len())
         .find(|&i| {archive.by_index(i).unwrap().name().ends_with(".txt")})
-        .ok_or("No .txt file found in the ZIP archive.")?;   
+        .ok_or("※ No .txt file found in the ZIP archive.")?;   
     
     let file = archive.by_index(index_zip)?;
 
@@ -47,7 +48,7 @@ pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
         
         processed_cot.push(ProcessedCot {
             market_name: raw_cot.market_name.clone(),
-            report_date: NaiveDate::parse_from_str(raw_cot.report_date, "%Y-%m-%d")?.and_hms_opt(0,0,0).is_some(),
+            report_date: NaiveDate::parse_from_str(raw_cot.report_date, "%Y-%m-%d")?.and_hms_opt(0,0,0).unwrap().and_utc(),
             tff_code: raw_cot.tff_code,
             open_interest_all: raw_cot.open_interest_all.parse::<f64>()?,
             dealer_long: parse_cftc_numbers(&raw_cot.dealer_long),
@@ -65,6 +66,59 @@ pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
         });
 
     }
+
+    if processed_cot.is_empty() {
+        println!("※ Warning: No target COT records found for year {}.", year);
+        return Ok(());
+    }
+
+    let mut query_builder: QueryBuilder<Pg> = QueryBuilder::new(
+        "INSERT INTO raw_cot_reports (market_name, report_date, tff_code, open_interest_all, dealer_long, dealer_short, dealer_spread, asset_mgr_long, asset_mgr_short, asset_mgr_spread, lev_money_long, lev_money_short, lev_money_spread, other_rept_long, other_rept_short, other_rept_spread) "
+    );
+
+    query_builder.push_values(
+        processed_cot.iter(),
+        |mut b, cot| {
+            b.push_bind(&cot.market_name)
+             .push_bind(&cot.report_date)
+             .push_bind(&cot.tff_code)
+             .push_bind(&cot.open_interest_all)
+             .push_bind(&cot.dealer_long)
+             .push_bind(&cot.dealer_short)
+             .push_bind(&cot.dealer_spread)
+             .push_bind(&cot.asset_mgr_long)
+             .push_bind(&cot.asset_mgr_short)
+             .push_bind(&cot.asset_mgr_spread)
+             .push_bind(&cot.lev_money_long)
+             .push_bind(&cot.lev_money_short)
+             .push_bind(&cot.lev_money_spread)
+             .push_bind(&cot.other_rept_long)
+             .push_bind(&cot.other_rept_short)
+             .push_bind(&cot.other_rept_spread);
+        }
+    );
+    
+    query_builder.push(
+        " ON CONFLICT (tff_code, report_date) DO UPDATE SET 
+        market_name = EXCLUDED.market_name,
+        open_interest_all = EXCLUDED.open_interest_all,
+        dealer_long = EXCLUDED.dealer_long,
+        dealer_short = EXCLUDED.dealer_short,
+        dealer_spread = EXCLUDED.dealer_spread,
+        asset_mgr_long = EXCLUDED.asset_mgr_long,
+        asset_mgr_short = EXCLUDED.asset_mgr_short,
+        asset_mgr_spread = EXCLUDED.asset_mgr_spread,
+        lev_money_long = EXCLUDED.lev_money_long,
+        lev_money_short = EXCLUDED.lev_money_short,
+        lev_money_spread = EXCLUDED.lev_money_spread,
+        other_rept_long = EXCLUDED.other_rept_long,
+        other_rept_short = EXCLUDED.other_rept_short,
+        other_rept_spread = EXCLUDED.other_rept_spread;"
+    );
+
+    let mut query = query_builder.build();
+
+    query.execute(&pool ).await?;
 
     Ok(())
 } 
@@ -146,6 +200,7 @@ struct ProcessedCot{
     #[serde(rename = "Other_Rept_Positions_Spread_All")]
     other_rept_spread: i64,
 }
+
 
 //=======================================================================================================
 // FX Price Data Fetching
@@ -243,3 +298,4 @@ impl From<CandlestickGranularity> for fxoanda::CandlestickGranularity {
         }
     }
 }
+

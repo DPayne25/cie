@@ -1,7 +1,7 @@
 mod ingestion;
 mod db;
 use futures::future::join_all;
-use sqlx::pool;
+use sqlx::PgPool;
 use std::{path::Path, error::Error};
 
 
@@ -18,16 +18,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
         "USD_CHF", 
         "NZD_USD"];
 
-    
+
 
     let config = config::SentinelConfig::from_env()?;
 
     let db_pool = db::connection::connect_db(&config).await?;
 
     let client = reqwest::Client::new();
-
   
-    ingestion::fetch::fetch_cot_data().await?;
+    ingestion::fetch::fetch_cot_data(year, &db_pool).await?;
+
     let fetch_all_fx_data = fx_pairs.iter().map(|pair| {
         ingestion::fetch::fetch_fx_price_data(
             &client,
@@ -39,9 +39,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         )
     });
     
-    join_all(fetch_all_fx_data).await;
-
-    ingestion::data_processor::process_cot_report()?;  
+    join_all(fetch_all_fx_data).await;  
     
     
 
