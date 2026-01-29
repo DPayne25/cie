@@ -37,31 +37,31 @@ pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
 
     for result in cot_data.deserialize::<RawCot>() {
 
-        let raw = result?;
+        let raw_cot = result?;
 
-        if !target_tff_codes.contains(&raw.tff_code.as_str()) {
+        if !target_tff_codes.contains(&raw_cot.tff_code.as_str()) {
             continue;
         } 
 
-        println!("• Processing Target: {} ({})", raw.market_name, raw.tff_code);
+        println!("• Processing Target: {} ({})", raw_cot.market_name, raw_cot.tff_code);
         
         processed_cot.push(ProcessedCot {
-            market_name: raw.market_name.clone(),
-            report_date: NaiveDate::parse_from_str(raw.report_date, "%Y-%m-%d")?.and_hms(0,0,0),
-            tff_code: raw.tff_code,
-            open_interest_all: raw.open_interest_all.clone().parse::<f64>()?,
-            dealer_long: parse_cftc_numbers(&raw.dealer_long),
-            dealer_short: parse_cftc_numbers(&raw.dealer_short),
-            dealer_spread: parse_cftc_numbers(&raw.dealer_spread),
-            asset_mgr_long: parse_cftc_numbers(&raw.asset_mgr_long),
-            asset_mgr_short: parse_cftc_numbers(&raw.asset_mgr_short),
-            asset_mgr_spread: parse_cftc_numbers(&raw.asset_mgr_spread),
-            lev_money_long: parse_cftc_numbers(&raw.lev_money_long),
-            lev_money_short: parse_cftc_numbers(&raw.lev_money_short),
-            lev_money_spread: parse_cftc_numbers(&raw.lev_money_spread),
-            other_rept_long: parse_cftc_numbers(&raw.other_rept_long),
-            other_rept_short: parse_cftc_numbers(&raw.other_rept_short),
-            other_rept_spread: parse_cftc_numbers(&raw.other_rept_spread),
+            market_name: raw_cot.market_name.clone(),
+            report_date: NaiveDate::parse_from_str(raw_cot.report_date, "%Y-%m-%d")?.and_hms(0,0,0),
+            tff_code: raw_cot.tff_code,
+            open_interest_all: raw_cot.open_interest_all.parse::<f64>()?,
+            dealer_long: parse_cftc_numbers(&raw_cot.dealer_long),
+            dealer_short: parse_cftc_numbers(&raw_cot.dealer_short),
+            dealer_spread: parse_cftc_numbers(&raw_cot.dealer_spread),
+            asset_mgr_long: parse_cftc_numbers(&raw_cot.asset_mgr_long),
+            asset_mgr_short: parse_cftc_numbers(&raw_cot.asset_mgr_short),
+            asset_mgr_spread: parse_cftc_numbers(&raw_cot.asset_mgr_spread),
+            lev_money_long: parse_cftc_numbers(&raw_cot.lev_money_long),
+            lev_money_short: parse_cftc_numbers(&raw_cot.lev_money_short),
+            lev_money_spread: parse_cftc_numbers(&raw_cot.lev_money_spread),
+            other_rept_long: parse_cftc_numbers(&raw_cot.other_rept_long),
+            other_rept_short: parse_cftc_numbers(&raw_cot.other_rept_short),
+            other_rept_spread: parse_cftc_numbers(&raw_cot.other_rept_spread),
         });
 
     }
