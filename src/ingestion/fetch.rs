@@ -9,7 +9,7 @@ use serde::Deserialize;
 // COT Data Fetching
 //=======================================================================================================
 
-pub async fn fetch_cot_data(year: i32, config: &RawCotRow) -> Result<(), Box<dyn Error>> {
+pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
     
     let cot_request = reqwest::get(format!("https://www.cftc.gov/files/dea/history/com_disagg_txt_{}.zip", year))
         .await?
@@ -18,22 +18,26 @@ pub async fn fetch_cot_data(year: i32, config: &RawCotRow) -> Result<(), Box<dyn
 
     let mut archive = ZipArchive::new(Cursor::from(cot_request))?;
     
-    let index = (0..archive.len())
+    let index_zip = (0..archive.len())
         .find(|&i| {archive.by_index(i).unwrap().name().ends_with(".txt")})
         .ok_or("No .txt file found in the ZIP archive.")?;   
     
-    let file = archive.by_index(index)?;
-
+    let file = archive.by_index(index_zip)?;
     let cot_data = csv::ReaderBuilder::new()
         .delimiter(b',')
         .has_headers(true)
         .trim(csv::Trim::All)
         .from_reader(file);
 
-    cot_data.deserialize::<RawCotRow>()
-        .for_each(|result| {
-            let record = result.unwrap();
-        });
+    let target_tff_codes: HashSet<&str> = ["090741","092741", "096742", "097741", "099741", "232741", "112741"]
+        .iter()
+        .collect();
+
+    for result in cot_data.deserialize::<RawCOTRow>() {
+        let raw = result?;
+
+        if !target_tff_codes.contains(raw.)
+    }
 
     Ok(())
 } 

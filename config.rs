@@ -4,7 +4,7 @@ struct SentinelConfig {
      oanda_host: String,
      database_url: String,
      default_start_date: DateTime<Utc>
-
+    
 
 }
 
@@ -29,3 +29,31 @@ impl SentinelConfig {
     }
 }
 
+/* May need for Non-recompiler build version
+#[derive(Deserialize, Debug)]
+
+struct Instruments {
+    #[serde(rename = "099741")]
+    EURUSD: String,
+    #[serde(rename = "097741")]
+    USDJPY: String,
+    #[serde(rename = "096742")]
+    GBPUSD: String,
+    #[serde(rename = "232741")]
+    AUDUSD: String,
+    #[serde(rename = "090741")]
+    USDCAD: String,
+    #[serde(rename = "092741")]
+    USDCHF: String,
+    #[serde(rename = "112741")]
+    NZDUSD: String,
+    #[serde(rename = "095741")]
+    USDMXN: String,
+    #[serde(rename = "120741")]
+    USDBRL: String,
+    #[serde(rename = "216742")]
+    USDZAR: String,
+    #[serde(rename = "233741")]
+    BTCUSD: String, 
+}
+*/
