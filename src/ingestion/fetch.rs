@@ -1,21 +1,43 @@
-use std::{env, error::Error};
+use std::{env, error::Error, io::{Cursor}};
 use tokio::fs;
 use chrono::{DateTime, Utc, TimeZone};
 use fxoanda;
 use crate::config::OandaConfig;
+use csv::ReaderBuilder;
+use serde::Deserialize;
 
+//=======================================================================================================
+// COT Data Fetching
+//=======================================================================================================
 
-pub async fn fetch_cot_data() -> Result<(), Box<dyn Error>> {
+pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
     
-    let cot_data = reqwest::get("https://www.cftc.gov/dea/newcot/FinFutWk.txt")
+    let cot_data = reqwest::get(format!("https://www.cftc.gov/files/dea/history/com_disagg_txt_{}.zip", year))
         .await?
-        .text()
+        .bytes()
         .await?;
 
-    fs::write("data/raw/cot/date-RawCOTReport.csv", cot_data)?;
+    let mut archive = ZipArchive::new(Cursor::from(cot_data))?;
+    
+     let index = (0..archive.len())
+        .find(|&i| {archive.by_index(i).unwrap().name().ends_with(".txt")})
+        .ok_or("No .txt file found in the ZIP archive.")?;   
+    let file = archive.by_index(index)?;
 
     Ok(())
 } 
+
+pub fn parse_cftc_numbers(value: &str) -> i64 { 
+        value
+            .replace(",", "")
+            .trim()
+            .parse::<i64>().unwrap_or(0)
+}
+
+
+//=======================================================================================================
+// FX Price Data Fetching
+//=======================================================================================================
 
 pub async fn fetch_fx_price_data(
     client: &reqwest::Client,

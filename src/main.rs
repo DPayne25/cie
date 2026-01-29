@@ -18,6 +18,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         "USD_CHF", 
         "NZD_USD"];
 
+    
+
     let config = config::SentinelConfig::from_env()?;
 
     let db_pool = db::connection::connect_db(&config).await?;
