@@ -30,6 +30,11 @@ pub async fn fetch_cot_data(year: i32, config: &RawCotRow) -> Result<(), Box<dyn
         .trim(csv::Trim::All)
         .from_reader(file);
 
+    cot_data.deserialize::<RawCotRow>()
+        .for_each(|result| {
+            let record = result.unwrap();
+        });
+
     Ok(())
 } 
 
@@ -40,6 +45,41 @@ pub fn parse_cftc_numbers(value: &str) -> i64 {
             .parse::<i64>().unwrap_or(0)
 }
 
+#[derive(Deserialize, Debug)]
+struct RawCOTRow{
+    #[serde(rename = "Market_and_Exchange_Names")]
+    market_name: String,
+    #[serde(rename = "Report_Date_as_YYYY-MM-DD")]
+    report_date: String,
+    #[serde(rename = "CFTC_Contract_Market_Code")]
+    tff_code: String,
+    #[serde(rename = "Open_Interest_All")]
+    open_interest_all: String,
+    #[serde(rename = "Dealer_Positions_Long_All")]
+    dealer_long: String,
+    #[serde(rename = "Dealer_Positions_Short_All")]
+    dealer_short: String,
+    #[serde(rename = "Dealer_Positions_Spread_All")]
+    dealer_spread: String,
+    #[serde(rename = "Asset_Mgr_Positions_Long_All")]
+    asset_mgr_long: String,
+    #[serde(rename = "Asset_Mgr_Positions_Short_All")]
+    asset_mgr_short: String,
+    #[serde(rename = "Asset_Mgr_Positions_Spread_All")]
+    asset_mgr_spread: String,
+    #[serde(rename = "Lev_Money_Positions_Long_All")]
+    lev_money_long: String,
+    #[serde(rename = "Lev_Money_Positions_Short_All")]
+    lev_money_short: String,
+    #[serde(rename = "Lev_Money_Positions_Spread_All")]
+    lev_money_spread: String,
+    #[serde(rename = "Other_Rept_Positions_Long_All")]
+    other_rept_long: String,
+    #[serde(rename = "Other_Rept_Positions_Short_All")]
+    other_rept_short: String,
+    #[serde(rename = "Other_Rept_Positions_Spread_All")]
+    other_rept_spread: String,
+}
 
 //=======================================================================================================
 // FX Price Data Fetching
