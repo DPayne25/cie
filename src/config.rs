@@ -7,8 +7,7 @@ pub struct SentinelConfig {
      oanda_api_key: String,
      oanda_host: String,
      database_url: String,
-     default_start_date: DateTime<Utc>
-    
+     default_start_date: DateTime<Utc>, 
 
 }
 

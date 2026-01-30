@@ -1,6 +1,6 @@
 #![allow(unused_imports)]
-use std::{env, error::Error, io::{Cursor}, path::Path};
-use sqlx::{Executor, PgPool, QueryBuilder, query};
+use std::{env, error::Error, io::{Cursor, Seek, Read}, path::Path};
+use sqlx::{Executor, PgPool, Postgres, QueryBuilder, query};
 use tokio::fs;
 use chrono::{DateTime, TimeZone, Utc, format::ParseError, NaiveDate};
 use fxoanda;
@@ -78,7 +78,7 @@ pub async fn fetch_cot_data(year: i32, pool: &PgPool) -> Result<(), Box<dyn Erro
         return Ok(());
     }
 
-    let mut query_builder: QueryBuilder<Pg> = QueryBuilder::new(
+    let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(
         "INSERT INTO raw_cot_reports (market_name, report_date, tff_code, open_interest_all, dealer_long, dealer_short, dealer_spread, asset_mgr_long, asset_mgr_short, asset_mgr_spread, lev_money_long, lev_money_short, lev_money_spread, other_rept_long, other_rept_short, other_rept_spread) "
     );
 
