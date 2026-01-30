@@ -56,7 +56,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             &config,
             db_pool.clone(), 
             pair, 
-             ingestion::fetch::CandlestickGranularity::D, 
+             "D", 
             "M"
         )
     });
