@@ -256,12 +256,12 @@ pub async fn fetch_fx_price_data(
     let get_data = fxoanda::GetInstrumentCandlesRequest::new()
         .with_instrument(instrument.to_string())
         .with_from(start_date)
-        .with_granularity(granularity.into())
+        .with_granularity(fxoanda::CandlestickGranularity::D)
         .with_price(price_type.to_string())
         .with_count(5000)
         .remote(&oanda_client)?;
 
-    
+
 
     let fx_data = get_data?;
 
