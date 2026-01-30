@@ -242,9 +242,9 @@ pub async fn fetch_fx_price_data(
     let api_key: String = config.oanda_api_key.clone();
 
     let oanda_client= fxoanda::Client {
-        host: config.oanda_host.clone(),
+        host: config.oanda_host,
         reqwest: client.clone(),
-        authentication: api_key.to_string()
+        authentication: api_key,
     };
 
 
