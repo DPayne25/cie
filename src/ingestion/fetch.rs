@@ -48,7 +48,7 @@ pub async fn fetch_cot_data(year: i32, pool: &PgPool) -> Result<(), Box<dyn Erro
         println!("• Processing Target: {} ({})", raw_cot.market_name, raw_cot.tff_code);
         
         processed_cot.push(ProcessedCot {
-            market_name: raw_cot.market_name.clone(),
+            market_name: raw_cot.market_name,
             report_date: {
                 let naivedate =NaiveDate::parse_from_str(&raw_cot.report_date, "%Y-%m-%d")?;
                 naive_date.and_hms_opt(0,0,0)
@@ -57,18 +57,18 @@ pub async fn fetch_cot_data(year: i32, pool: &PgPool) -> Result<(), Box<dyn Erro
             },
             tff_code: raw_cot.tff_code,
             open_interest_all: raw_cot.open_interest_all.parse::<f64>()?,
-            dealer_long: parse_cftc_numbers(&raw_cot.dealer_long),
-            dealer_short: parse_cftc_numbers(&raw_cot.dealer_short),
-            dealer_spread: parse_cftc_numbers(&raw_cot.dealer_spread),
-            asset_mgr_long: parse_cftc_numbers(&raw_cot.asset_mgr_long),
-            asset_mgr_short: parse_cftc_numbers(&raw_cot.asset_mgr_short),
-            asset_mgr_spread: parse_cftc_numbers(&raw_cot.asset_mgr_spread),
-            lev_money_long: parse_cftc_numbers(&raw_cot.lev_money_long),
-            lev_money_short: parse_cftc_numbers(&raw_cot.lev_money_short),
-            lev_money_spread: parse_cftc_numbers(&raw_cot.lev_money_spread),
-            other_rept_long: parse_cftc_numbers(&raw_cot.other_rept_long),
-            other_rept_short: parse_cftc_numbers(&raw_cot.other_rept_short),
-            other_rept_spread: parse_cftc_numbers(&raw_cot.other_rept_spread),
+            dealer_long: parse_cftc_numbers(&raw_cot.dealer_long)?,
+            dealer_short: parse_cftc_numbers(&raw_cot.dealer_short)?,
+            dealer_spread: parse_cftc_numbers(&raw_cot.dealer_spread)?,
+            asset_mgr_long: parse_cftc_numbers(&raw_cot.asset_mgr_long)?,
+            asset_mgr_short: parse_cftc_numbers(&raw_cot.asset_mgr_short)?,
+            asset_mgr_spread: parse_cftc_numbers(&raw_cot.asset_mgr_spread)?,
+            lev_money_long: parse_cftc_numbers(&raw_cot.lev_money_long)?,
+            lev_money_short: parse_cftc_numbers(&raw_cot.lev_money_short)?,
+            lev_money_spread: parse_cftc_numbers(&raw_cot.lev_money_spread)?,
+            other_rept_long: parse_cftc_numbers(&raw_cot.other_rept_long)?,
+            other_rept_short: parse_cftc_numbers(&raw_cot.other_rept_short)?,
+            other_rept_spread: parse_cftc_numbers(&raw_cot.other_rept_spread)?,
         });
 
     }
