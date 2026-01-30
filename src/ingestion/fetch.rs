@@ -247,8 +247,8 @@ pub async fn fetch_fx_price_data(
     let api_key: String = config.oanda_api_key.clone();
 
     let oanda_client= fxoanda::Client {
-        host: config.oanda_host,
         reqwest: client.clone(),
+        host: config.oanda_host,
         authentication: api_key,
     };
 
@@ -259,7 +259,7 @@ pub async fn fetch_fx_price_data(
         .with_granularity(granularity.into())
         .with_price(price_type.to_string())
         .with_count(5000)
-        .remote(&oanda_client).await;
+        .remote(&oanda_client)?;
 
 
 
