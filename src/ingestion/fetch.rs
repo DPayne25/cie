@@ -231,7 +231,7 @@ pub async fn fetch_fx_price_data(
     config: &SentinelConfig,
     pool: PgPool,
     instrument: &str,  
-    granularity: &str, 
+    granularity: CandlestickGranularity, 
     price_type: &str
 ) -> Result<(), Box<dyn Error>> {
 
@@ -336,7 +336,7 @@ impl From<CandlestickGranularity> for fxoanda::CandlestickGranularity {
             CandlestickGranularity::H2 => fxoanda::CandlestickGranularity::H2,
             CandlestickGranularity::H3 => fxoanda::CandlestickGranularity::H3,
             CandlestickGranularity::H4 => fxoanda::CandlestickGranularity::H4,
-            CandlestickGranularity::H6 => fxoanda::CandlestickGranularity::H4,
+            CandlestickGranularity::H6 => fxoanda::CandlestickGranularity::H6,
             CandlestickGranularity::H8 => fxoanda::CandlestickGranularity::H8,
             CandlestickGranularity::H12 => fxoanda::CandlestickGranularity::H12,
             CandlestickGranularity::D => fxoanda::CandlestickGranularity::D,
