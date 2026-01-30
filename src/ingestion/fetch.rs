@@ -172,6 +172,7 @@ struct RawCot{
     #[serde(rename = "Other_Rept_Positions_Spread_All")]
     other_rept_spread: String,
 }
+
 #[derive(Deserialize, Debug)]
 struct ProcessedCot{
     #[serde(rename = "Market_and_Exchange_Names")]
@@ -213,10 +214,22 @@ struct ProcessedCot{
 // FX Price Data Fetching
 //=======================================================================================================
 
+struct FxPriceRow<'a> {
+    symbol: &'a str,
+    date: DateTime<Utc>,
+    open: f64,
+    high: f64,
+    low: f64,
+    close: f64,
+    volume: i64,
+    complete: bool,
+}
+
+
 pub async fn fetch_fx_price_data(
     client: &reqwest::Client,
     config: &SentinelConfig,
-    pool: sqlx::PgPool,
+    pool: PgPool,
     instrument: &str,  
     granularity: &str, 
     price_type: &str
@@ -246,30 +259,57 @@ pub async fn fetch_fx_price_data(
 
 
     let fx_data = get_data?;
-
     let candles = fx_data.candles;
 
-    for candle in candles { 
-        sqlx::query!(
-            "INSERT INTO raw_fx_prices (symbol, date, open, high, low, close, volume, complete) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (symbol, date) DO UPDATE SET 
-            date = EXCLUDED.date,
-            open = EXCLUDED.open,
-            high = EXCLUDED.high,
-            low = EXCLUDED.low,
-            close = EXCLUDED.close,
-            volume = EXCLUDED.volume,
-            complete = EXCLUDED.complete;",
-            instrument,
-            candle.time,
-            candle.mid.o,
-            candle.mid.h,
-            candle.mid.l,
-            candle.mid.c,
-            candle.volume,
-            candle.complete
-        ).execute(&pool).await?;
+    if candles.is_empty(){
+        println!("※ Warning: No new FX price data found for {}.", instrument);
+        return Ok(());
     }
+
+    let rosw_to_insert: Vec<FxProceRow> = candles.iter().map(|candle| {
+        FxPriceRow {
+            symbol: instrument,
+            date: candle.time,
+            open: candle.mid.o,
+            high: candle.mid.h,
+            low: candle.mid.l,
+            close: candle.mid.c,
+            volume: candle.volume,
+            complete: candle.complete
+        }
+    }).collect();
+    
+    let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(
+        "INSERT INTO raw_fx_prices (symbol, date, open, high, low, close, volume, complete) "
+    );
+
+    query_builder.push_values(
+        rows_to_insert.iter(),
+        |mut b, row| {
+            b.push_bind(row.symbol)
+             .push_bind(row.date)
+             .push_bind(row.open)
+             .push_bind(row.high)
+             .push_bind(row.low)
+             .push_bind(row.close)
+             .push_bind(row.volume)
+             .push_bind(row.complete);
+        }
+    );
+
+    query_builder.push(
+        " ON CONFLICT (symbol, date) DO UPDATE SET 
+        open = EXCLUDED.open,
+        high = EXCLUDED.high,
+        low = EXCLUDED.low,
+        close = EXCLUDED.close,
+        volume = EXCLUDED.volume,
+        complete = EXCLUDED.complete;"
+    );
+
+    let query = query_builder.build();
+
+    query.execute(&pool).await?;
 
     Ok(())
 } 
