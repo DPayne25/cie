@@ -50,9 +50,9 @@ pub async fn fetch_cot_data(year: i32, pool: &PgPool) -> Result<(), Box<dyn Erro
         processed_cot.push(ProcessedCot {
             market_name: raw_cot.market_name,
             report_date: {
-                let naivedate =NaiveDate::parse_from_str(&raw_cot.report_date, "%Y-%m-%d")?;
+                let naive_date =NaiveDate::parse_from_str(&raw_cot.report_date, "%Y-%m-%d")?;
                 naive_date.and_hms_opt(0,0,0)
-                    .map(|dt| dt.ant_utc())
+                    .map(|dt| dt.and_utc())
                     .ok_or_else(|| format!("※ Invalid date format for report_date: {}", raw_cot.report_date))?
             },
             tff_code: raw_cot.tff_code,

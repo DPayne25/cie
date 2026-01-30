@@ -1,3 +1,7 @@
+/*use chrono::{DateTime, Utc, NaiveDate};
+use std::env;
+use dotenvy::dotenv;
+*/
 pub struct SentinelConfig {
 
      oanda_api_key: String,
@@ -20,7 +24,7 @@ impl SentinelConfig {
 
         let date_parse = NaiveDate::parse_from_str(&env::var("DEFAULT_START_DATE")?, "%Y-%m-%d")
             .expect("Invalid date format. Use 'YYYY-MM-DD' in `/.env`.");
-        let date_time = date_parse.and_hms(0, 0, 0)
+        let date_time = date_parse.and_hms_opt(0, 0, 0)
             .expect("Invalid time components. Use 'HH, MM, SS'.");
         let default_start_date_utc = date_time.and_utc();
 

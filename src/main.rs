@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 mod ingestion;
 mod db;
-mod crate::config;
+mod config;
 use futures::future::join_all;
 use sqlx::PgPool;
 use chrono::Utc;
