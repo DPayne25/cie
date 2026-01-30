@@ -1,4 +1,4 @@
-struct SentinelConfig {
+pub struct SentinelConfig {
 
      oanda_api_key: String,
      oanda_host: String,

@@ -1,8 +1,14 @@
+#![allow(unused_imports)]
 mod ingestion;
 mod db;
+mod crate::config;
 use futures::future::join_all;
 use sqlx::PgPool;
-use std::{path::Path, error::Error};
+use chrono::Utc;
+use chrono::Datelike;
+use std::error::Error;
+use std::path::Path;
+use tokio;
 
 
 
@@ -59,7 +65,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     
     
 
-   println!("• Mission Complete: Ingestion Completed Successfully.");
+   println!("₯₯₯ Mission Complete: Ingestion Completed Successfully. ₯₯₯");
 
 
     Ok(())

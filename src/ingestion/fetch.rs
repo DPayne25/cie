@@ -1,17 +1,18 @@
+#![allow(unused_imports)]
 use std::{env, error::Error, io::{Cursor}, path::Path};
 use sqlx::{Executor, PgPool, QueryBuilder, query};
 use tokio::fs;
-use chrono::{DateTime, TimeZone, Utc, format::parse};
+use chrono::{DateTime, TimeZone, Utc, format::ParseError, NaiveDate};
 use fxoanda;
 use csv::ReaderBuilder;
 use serde::Deserialize;
-use zip::DateTime;
+use zip::ZipArchive;
 
 //=======================================================================================================
 // COT Data Fetching
 //=======================================================================================================
 
-pub async fn fetch_cot_data(year: i32, pool: PgPool) -> Result<(), Box<dyn Error>> {
+pub async fn fetch_cot_data(year: i32, pool: &PgPool) -> Result<(), Box<dyn Error>> {
     
     let cot_request = reqwest::get(format!("https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip", year))
         .await?
@@ -48,7 +49,12 @@ pub async fn fetch_cot_data(year: i32, pool: PgPool) -> Result<(), Box<dyn Error
         
         processed_cot.push(ProcessedCot {
             market_name: raw_cot.market_name.clone(),
-            report_date: NaiveDate::parse_from_str(raw_cot.report_date, "%Y-%m-%d")?.and_hms_opt(0,0,0).unwrap().and_utc(),
+            report_date: {
+                let naivedate =NaiveDate::parse_from_str(&raw_cot.report_date, "%Y-%m-%d")?;
+                naive_date.and_hms_opt(0,0,0)
+                    .map(|dt| dt.ant_utc())
+                    .ok_or_else(|| format!("※ Invalid date format for report_date: {}", raw_cot.report_date))?
+            },
             tff_code: raw_cot.tff_code,
             open_interest_all: raw_cot.open_interest_all.parse::<f64>()?,
             dealer_long: parse_cftc_numbers(&raw_cot.dealer_long),

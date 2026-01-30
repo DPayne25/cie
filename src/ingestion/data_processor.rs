@@ -1,4 +1,4 @@
-use std::{error::Error, format, fs, fs::File, collections::HashSet, path::Path, };
+/*use std::{error::Error, format, fs, fs::File, collections::HashSet, path::Path, };
 use csv::{ReaderBuilder, Reader, WriterBuilder, Writer};
 
 const INPUT_PATH: &str = "data/raw/cot/date-RawCOTReport.csv";
@@ -34,3 +34,4 @@ pub fn process_cot_report() -> Result<(), Box<dyn Error>> {
     let processed_path: String = format!("data/processed/cot/{}-ProcessedCOTReport.csv", date_str);
     Ok(())
 }
+*/
