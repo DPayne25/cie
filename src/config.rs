@@ -1,13 +1,13 @@
-/*use chrono::{DateTime, Utc, NaiveDate};
+use chrono::{DateTime, Utc, NaiveDate};
 use std::env;
-use dotenvy::dotenv;
-*/
+use dotenv;
+
 pub struct SentinelConfig {
 
-     oanda_api_key: String,
-     oanda_host: String,
-     database_url: String,
-     default_start_date: DateTime<Utc>, 
+    pub oanda_api_key: String,
+    pub oanda_host: String,
+    pub database_url: String,
+    pub default_start_date: DateTime<Utc>, 
 
 }
 
@@ -25,7 +25,7 @@ impl SentinelConfig {
             .expect("Invalid date format. Use 'YYYY-MM-DD' in `/.env`.");
         let date_time = date_parse.and_hms_opt(0, 0, 0)
             .expect("Invalid time components. Use 'HH, MM, SS'.");
-        let default_start_date_utc = date_time.and_utc();
+        let default_start_date = date_time.and_utc();
 
          Ok(Self {oanda_api_key: oanda_api_key, oanda_host: oanda_host, database_url: database_url, default_start_date: default_start_date})
 

@@ -1,5 +1,5 @@
 #![allow(unused_imports)]
-use std::{env, error::Error, io::{Cursor, Seek, Read}, path::Path};
+use std::{env, error::Error, io::{Cursor, Seek, Read}, path::Path, future::IntoFuture};
 use sqlx::{Executor, PgPool, Postgres, QueryBuilder, query};
 use tokio::fs;
 use chrono::{DateTime, TimeZone, Utc, format::ParseError, NaiveDate};
@@ -7,6 +7,11 @@ use fxoanda;
 use csv::ReaderBuilder;
 use serde::Deserialize;
 use zip::ZipArchive;
+use bytes::Bytes;
+#[path = "../config.rs"]
+mod config;
+#[path = "../db/util.rs"]
+mod util;
 
 //=======================================================================================================
 // COT Data Fetching
@@ -124,7 +129,7 @@ pub async fn fetch_cot_data(year: i32, pool: &PgPool) -> Result<(), Box<dyn Erro
 
     let mut query = query_builder.build();
 
-    query.execute(&pool ).await?;
+    query.execute(pool ).await?;
 
     Ok(())
 } 
@@ -228,14 +233,14 @@ struct FxPriceRow<'a> {
 
 pub async fn fetch_fx_price_data(
     client: &reqwest::Client,
-    config: &SentinelConfig,
+    config: &config::SentinelConfig,
     pool: PgPool,
     instrument: &str,  
     granularity: CandlestickGranularity, 
     price_type: &str
 ) -> Result<(), Box<dyn Error>> {
 
-    let start_date: DateTime<Utc> = db::util::get_latest_timestamp(&pool, instrument)
+    let start_date: DateTime<Utc> = util::get_latest_timestamp(&pool, instrument)
         .await?
         .unwrap_or(config.default_start_date);
 
@@ -266,7 +271,7 @@ pub async fn fetch_fx_price_data(
         return Ok(());
     }
 
-    let rosw_to_insert: Vec<FxProceRow> = candles.iter().map(|candle| {
+    let rows_to_insert: Vec<FxPriceRow> = candles.iter().map(|candle| {
         FxPriceRow {
             symbol: instrument,
             date: candle.time,
