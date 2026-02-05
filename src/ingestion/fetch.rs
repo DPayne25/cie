@@ -316,7 +316,7 @@ pub async fn fetch_fx_price_data(
 
     let query = query_builder.build();
 
-    query.execute(&pool).await?;
+    query.execute(pool).await?;
 
     Ok(())
 } 
