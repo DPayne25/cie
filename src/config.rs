@@ -1,7 +1,9 @@
 use chrono::{DateTime, Utc, NaiveDate};
 use std::env;
 use dotenv;
+use thiserror::Error;
 
+// SentinelConfig
 pub struct SentinelConfig {
 
     pub oanda_api_key: String,
@@ -13,7 +15,7 @@ pub struct SentinelConfig {
 
 impl SentinelConfig { 
 
-    pub fn from_env() -> Result< Self, Box<dyn std::error::Error>> {
+    pub fn from_env() -> Result< Self, ConfigError> {
 
         dotenv::from_filename(".env").ok();
 
@@ -21,16 +23,30 @@ impl SentinelConfig {
         let oanda_host = env::var("OANDA_HOST")?;
         let database_url = env::var("DATABASE_URL")?;
 
-        let date_parse = NaiveDate::parse_from_str(&env::var("DEFAULT_START_DATE")?, "%Y-%m-%d")
-            .expect("Invalid date format. Use 'YYYY-MM-DD' in `/.env`.");
-        let date_time = date_parse.and_hms_opt(0, 0, 0)
-            .expect("Invalid time components. Use 'HH, MM, SS'.");
-        let default_start_date = date_time.and_utc();
+        let date_str = env::var("DEFAULT_START_DATE")?;
+        let naive_date = NaiveDate::parse_from_str(&date_str, "%Y-%m-%d")?;
+        let naive_date_time = naive_date.and_hms_opt(0,0,0)
+            .ok_or(ConfigError::DateTimeConstruction)?;
+        let default_start_date = naive_date_time.and_utc();
 
          Ok(Self {oanda_api_key: oanda_api_key, oanda_host: oanda_host, database_url: database_url, default_start_date: default_start_date})
 
     }
 }
+
+
+//Error Handling with thiserror crate
+#[derive(Error, Debug)]
+pub enum ConfigError { 
+    #[error("Environment variable not found: {0}")]
+    MissingVariabl(#[from] std::env::VarError),
+    #[error("Invalid date format for DEFAULT_START_DATE: {0}. Expected 'YYYY-MM-DD'.")]
+    InvalidDateFormat(#[from] chrono::ParseError),
+    #[error("Internal error: Could not construct date/time object.")]
+    DateTimeConstruction,
+}
+
+
 
 /* May need for Non-recompiler build version
 #[derive(Deserialize, Debug)]
