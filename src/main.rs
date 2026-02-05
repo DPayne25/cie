@@ -54,7 +54,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         ingestion::fetch::fetch_fx_price_data(
             &client,
             &config,
-            db_pool.clone(), 
+            &db_pool, 
             pair, 
              "D", 
             "M"

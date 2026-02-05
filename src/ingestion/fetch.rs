@@ -234,7 +234,7 @@ struct FxPriceRow<'a> {
 pub async fn fetch_fx_price_data(
     client: &reqwest::Client,
     config: &config::SentinelConfig,
-    pool: PgPool,
+    pool: &PgPool,
     instrument: &str,  
     granularity: &str, 
     price_type: &str
