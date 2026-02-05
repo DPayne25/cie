@@ -134,12 +134,12 @@ pub async fn fetch_cot_data(year: i32, pool: &PgPool) -> Result<(), Box<dyn Erro
     Ok(())
 } 
 
-pub fn parse_cftc_numbers(value: &str) -> Result<i64, Box<dyn Error>> { 
-    let cleaned_value = value
-        .replace(",", "")
-        .trim()
-        .to_string();
-        cleaned_value.parse::<i64>().map_err(|e| e.into())
+pub fn parse_cftc_numbers(value: &str) -> Result<i64, ParseIntError> { 
+    if value.contains(',') {
+        value.replace(",", "").trim().parse()
+    } else {
+        value.trim().parse()
+    }
 }
 
 #[derive(Deserialize, Debug)]
