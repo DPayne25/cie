@@ -29,7 +29,12 @@ impl SentinelConfig {
             .ok_or(ConfigError::DateTimeConstruction)?;
         let default_start_date = naive_date_time.and_utc();
 
-         Ok(Self {oanda_api_key: oanda_api_key, oanda_host: oanda_host, database_url: database_url, default_start_date: default_start_date})
+         Ok(Self {
+            oanda_api_key,
+            oanda_host, 
+            database_url,
+            default_start_date,
+        })
 
     }
 }
@@ -39,9 +44,11 @@ impl SentinelConfig {
 #[derive(Error, Debug)]
 pub enum ConfigError { 
     #[error("Environment variable not found: {0}")]
-    MissingVariabl(#[from] std::env::VarError),
+    MissingVariable(#[from] std::env::VarError),
+
     #[error("Invalid date format for DEFAULT_START_DATE: {0}. Expected 'YYYY-MM-DD'.")]
     InvalidDateFormat(#[from] chrono::ParseError),
+    
     #[error("Internal error: Could not construct date/time object.")]
     DateTimeConstruction,
 }

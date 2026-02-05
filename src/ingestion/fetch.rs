@@ -161,7 +161,7 @@ pub async fn batch_insert_cot(pool: &PgPool, reports: Vec<CotReport>) -> Result<
         );
 
         query_builder.push_values(
-            reports.iter(),
+            chunk.iter(),
             |mut b, report| {
                 b.push_bind(&report.market_name)
                 .push_bind(report.report_date)
