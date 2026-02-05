@@ -54,42 +54,6 @@ struct RawCot{
     other_rept_spread: String,
 }
 
-#[derive(Deserialize, Debug)]
-struct ProcessedCot{
-    #[serde(rename = "Market_and_Exchange_Names")]
-    market_name: String,
-    #[serde(rename = "Report_Date_as_YYYY-MM-DD")]
-    report_date: DateTime<Utc>,
-    #[serde(rename = "CFTC_Contract_Market_Code")]
-    tff_code: String,
-    #[serde(rename = "Open_Interest_All")]
-    open_interest_all: f64,
-    #[serde(rename = "Dealer_Positions_Long_All")]
-    dealer_long: i64,
-    #[serde(rename = "Dealer_Positions_Short_All")]
-    dealer_short: i64,
-    #[serde(rename = "Dealer_Positions_Spread_All")]
-    dealer_spread: i64,
-    #[serde(rename = "Asset_Mgr_Positions_Long_All")]
-    asset_mgr_long: i64,
-    #[serde(rename = "Asset_Mgr_Positions_Short_All")]
-    asset_mgr_short: i64,
-    #[serde(rename = "Asset_Mgr_Positions_Spread_All")]
-    asset_mgr_spread: i64,
-    #[serde(rename = "Lev_Money_Positions_Long_All")]
-    lev_money_long: i64,
-    #[serde(rename = "Lev_Money_Positions_Short_All")]
-    lev_money_short: i64,
-    #[serde(rename = "Lev_Money_Positions_Spread_All")]
-    lev_money_spread: i64,
-    #[serde(rename = "Other_Rept_Positions_Long_All")]
-    other_rept_long: i64,
-    #[serde(rename = "Other_Rept_Positions_Short_All")]
-    other_rept_short: i64,
-    #[serde(rename = "Other_Rept_Positions_Spread_All")]
-    other_rept_spread: i64,
-}
-
 #[derive(Debug, sqlx::FromRow)]
 struct CotReport {
     market_name: String,
@@ -167,96 +131,16 @@ pub async fn fetch_cot_data(year: i32, pool: &PgPool) -> Result<(), Box<dyn Erro
 
     let target_tff_codes  = ["090741","092741", "096742", "097741", "099741", "232741", "112741", "095741", "120741", "216742", "233741"];
 
-    let mut processed_cot: Vec<ProcessedCot> = Vec::new();
-
-    for result in cot_data.deserialize::<RawCot>() {
-
-        let raw_cot = result?;
-
-        if !target_tff_codes.contains(&raw_cot.tff_code.as_str()) {
-            continue;
-        } 
-
-        println!("• Processing Target: {} ({})", raw_cot.market_name, raw_cot.tff_code);
-        
-        processed_cot.push(ProcessedCot {
-            market_name: raw_cot.market_name,
-            report_date: {
-                let naive_date =NaiveDate::parse_from_str(&raw_cot.report_date, "%Y-%m-%d")?;
-                naive_date.and_hms_opt(0,0,0)
-                    .map(|dt| dt.and_utc())
-                    .ok_or_else(|| format!("※ Invalid date format for report_date: {}", raw_cot.report_date))?
-            },
-            tff_code: raw_cot.tff_code,
-            open_interest_all: raw_cot.open_interest_all.parse::<f64>()?,
-            dealer_long: parse_cftc_numbers(&raw_cot.dealer_long)?,
-            dealer_short: parse_cftc_numbers(&raw_cot.dealer_short)?,
-            dealer_spread: parse_cftc_numbers(&raw_cot.dealer_spread)?,
-            asset_mgr_long: parse_cftc_numbers(&raw_cot.asset_mgr_long)?,
-            asset_mgr_short: parse_cftc_numbers(&raw_cot.asset_mgr_short)?,
-            asset_mgr_spread: parse_cftc_numbers(&raw_cot.asset_mgr_spread)?,
-            lev_money_long: parse_cftc_numbers(&raw_cot.lev_money_long)?,
-            lev_money_short: parse_cftc_numbers(&raw_cot.lev_money_short)?,
-            lev_money_spread: parse_cftc_numbers(&raw_cot.lev_money_spread)?,
-            other_rept_long: parse_cftc_numbers(&raw_cot.other_rept_long)?,
-            other_rept_short: parse_cftc_numbers(&raw_cot.other_rept_short)?,
-            other_rept_spread: parse_cftc_numbers(&raw_cot.other_rept_spread)?,
-        });
-
-    }
-
-    if processed_cot.is_empty() {
-        println!("※ Warning: No target COT records found for year {}.", year);
-        return Ok(());
-    }
-
-    let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(
-        "INSERT INTO raw_cot_reports (market_name, report_date, tff_code, open_interest_all, dealer_long, dealer_short, dealer_spread, asset_mgr_long, asset_mgr_short, asset_mgr_spread, lev_money_long, lev_money_short, lev_money_spread, other_rept_long, other_rept_short, other_rept_spread) "
-    );
-
-    query_builder.push_values(
-        processed_cot.iter(),
-        |mut b, cot| {
-            b.push_bind(&cot.market_name)
-             .push_bind(&cot.report_date)
-             .push_bind(&cot.tff_code)
-             .push_bind(&cot.open_interest_all)
-             .push_bind(&cot.dealer_long)
-             .push_bind(&cot.dealer_short)
-             .push_bind(&cot.dealer_spread)
-             .push_bind(&cot.asset_mgr_long)
-             .push_bind(&cot.asset_mgr_short)
-             .push_bind(&cot.asset_mgr_spread)
-             .push_bind(&cot.lev_money_long)
-             .push_bind(&cot.lev_money_short)
-             .push_bind(&cot.lev_money_spread)
-             .push_bind(&cot.other_rept_long)
-             .push_bind(&cot.other_rept_short)
-             .push_bind(&cot.other_rept_spread);
+    let mut reports: Vec<CotReport> = Vec::new();
+    for result in cot_data.into_deserialize::<RawCot>() {
+        let record: RawCot = result?;
+        if target_tff_codes.contains(&record.tff_code.as_str()) {
+            let cot_report = CotReport::try_from(record)?;
+            reports.push(cot_report);
         }
-    );
-    
-    query_builder.push(
-        " ON CONFLICT (tff_code, report_date) DO UPDATE SET 
-        market_name = EXCLUDED.market_name,
-        open_interest_all = EXCLUDED.open_interest_all,
-        dealer_long = EXCLUDED.dealer_long,
-        dealer_short = EXCLUDED.dealer_short,
-        dealer_spread = EXCLUDED.dealer_spread,
-        asset_mgr_long = EXCLUDED.asset_mgr_long,
-        asset_mgr_short = EXCLUDED.asset_mgr_short,
-        asset_mgr_spread = EXCLUDED.asset_mgr_spread,
-        lev_money_long = EXCLUDED.lev_money_long,
-        lev_money_short = EXCLUDED.lev_money_short,
-        lev_money_spread = EXCLUDED.lev_money_spread,
-        other_rept_long = EXCLUDED.other_rept_long,
-        other_rept_short = EXCLUDED.other_rept_short,
-        other_rept_spread = EXCLUDED.other_rept_spread;"
-    );
+    }
 
-    let mut query = query_builder.build();
-
-    query.execute(pool ).await?;
+    batch_insert_cot(pool, reports).await?;
 
     Ok(())
 } 
@@ -269,6 +153,60 @@ pub fn parse_cftc_numbers(value: &str) -> Result<i64, ParseIntError> {
     }
 }
 
+pub async fn batch_insert_cot(pool: &PgPool, reports: Vec<CotReport>) -> Result<(), Box<dyn Error>> {
+    const BATCH_SIZE: usize = 2000;
+    for chunk in reports.chunks(BATCH_SIZE) {
+        let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(
+            "INSERT INTO raw_cot_reports (market_name, report_date, tff_code, open_interest_all, dealer_long, dealer_short, dealer_spread, asset_mgr_long, asset_mgr_short, asset_mgr_spread, lev_money_long, lev_money_short, lev_money_spread, other_rept_long, other_rept_short, other_rept_spread) "
+        );
+
+        query_builder.push_values(
+            reports.iter(),
+            |mut b, report| {
+                b.push_bind(&report.market_name)
+                .push_bind(report.report_date)
+                .push_bind(&report.tff_code)
+                .push_bind(report.open_interest_all)
+                .push_bind(report.dealer_long)
+                .push_bind(report.dealer_short)
+                .push_bind(report.dealer_spread)
+                .push_bind(report.asset_mgr_long)
+                .push_bind(report.asset_mgr_short)
+                .push_bind(report.asset_mgr_spread)
+                .push_bind(report.lev_money_long)
+                .push_bind(report.lev_money_short)
+                .push_bind(report.lev_money_spread)
+                .push_bind(report.other_rept_long)
+                .push_bind(report.other_rept_short)
+                .push_bind(report.other_rept_spread);
+            }
+        );
+
+        query_builder.push(
+            " ON CONFLICT (tff_code, report_date) DO UPDATE SET 
+            market_name = EXCLUDED.market_name,
+            open_interest_all = EXCLUDED.open_interest_all,
+            dealer_long = EXCLUDED.dealer_long,
+            dealer_short = EXCLUDED.dealer_short,
+            dealer_spread = EXCLUDED.dealer_spread,
+            asset_mgr_long = EXCLUDED.asset_mgr_long,
+            asset_mgr_short = EXCLUDED.asset_mgr_short,
+            asset_mgr_spread = EXCLUDED.asset_mgr_spread,
+            lev_money_long = EXCLUDED.lev_money_long,
+            lev_money_short = EXCLUDED.lev_money_short,
+            lev_money_spread = EXCLUDED.lev_money_spread,
+            other_rept_long = EXCLUDED.other_rept_long,
+            other_rept_short = EXCLUDED.other_rept_short,
+            other_rept_spread = EXCLUDED.other_rept_spread;"
+        );
+
+        let query = query_builder.build();
+
+        query.execute(pool).await?;
+    }
+
+    Ok(())
+}
 
 
 
