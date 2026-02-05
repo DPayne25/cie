@@ -9,14 +9,16 @@ use chrono::Datelike;
 use std::error::Error;
 use std::path::Path;
 use tokio;
+use thiserror::Error;
 
 
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> anyhow::Result<(), Box<dyn Error>> {
 
 
-    let config = config::SentinelConfig::from_env()?;
+    let config = config::SentinelConfig::from_env()?
+        .ok_or(config::ConfigError::InvalidConfig)?;
 
     let db_pool = db::connection::connect_db(&config).await?;
 

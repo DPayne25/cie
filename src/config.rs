@@ -51,6 +51,9 @@ pub enum ConfigError {
     
     #[error("Internal error: Could not construct date/time object.")]
     DateTimeConstruction,
+
+    #[error("※ FATAL: Failed to load configuration.")]
+    InvalidConfig,
 }
 
 

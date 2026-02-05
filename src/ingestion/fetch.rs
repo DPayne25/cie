@@ -1,5 +1,5 @@
 #![allow(unused_imports)]
-use std::{env, error::Error, io::{Cursor, Seek, Read}, path::Path, future::IntoFuture};
+use std::{env, error::Error, io::{Cursor, Seek, Read}, path::Path, future::IntoFuture, num::ParseIntError};
 use sqlx::{Executor, PgPool, Postgres, QueryBuilder, query};
 use tokio::fs;
 use chrono::{DateTime, TimeZone, Utc, format::ParseError, NaiveDate};
@@ -132,14 +132,41 @@ pub async fn fetch_cot_data(year: i32, pool: &PgPool) -> Result<(), Box<dyn Erro
     let target_tff_codes  = ["090741","092741", "096742", "097741", "099741", "232741", "112741", "095741", "120741", "216742", "233741"];
 
     let mut reports: Vec<CotReport> = Vec::new();
-    for result in cot_data.into_deserialize::<RawCot>() {
-        let record: RawCot = result?;
+
+
+for result in cot_data.into_deserialize::<RawCot>() {
+        // Handle CSV/Deserialization errors safely
+        let record = match result {
+            Ok(rec) => rec,
+            Err(e) => {
+                eprintln!("※ Skipping malformed CSV record: {}", e);
+                continue;
+            }
+        };
+
         if target_tff_codes.contains(&record.tff_code.as_str()) {
-            let cot_report = CotReport::try_from(record)?;
-            reports.push(cot_report);
+            // Handle Domain Parsing errors safely
+            match CotReport::try_from(record) {
+
+                Ok(cot_report) => reports.push(cot_report),
+
+                Err(e) => {
+
+                    eprintln!("※ Data Corruption Detected. Skipping Row: {}", e);
+                
+                    continue;
+                }
+            }
         }
     }
 
+    if reports.is_empty() {
+        println!("※ Warning: No valid records found for year {}.", year);
+        return Ok(());
+    }
+
+    println!("• Batching {} records for insertion...", reports.len());
+    
     batch_insert_cot(pool, reports).await?;
 
     Ok(())
