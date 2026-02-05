@@ -8,10 +8,137 @@ use csv::ReaderBuilder;
 use serde::Deserialize;
 use zip::ZipArchive;
 use bytes::Bytes;
+use rust_decimal::{Decimal, prelude::FromPrimitive};
 #[path = "../config.rs"]
 mod config;
 #[path = "../db/util.rs"]
 mod util;
+
+//=======================================================================================================
+// Structs and Enums
+//=======================================================================================================
+
+#[derive(Deserialize, Debug)]
+struct RawCot{
+    #[serde(rename = "Market_and_Exchange_Names")]
+    market_name: String,
+    #[serde(rename = "Report_Date_as_YYYY-MM-DD")]
+    report_date: String,
+    #[serde(rename = "CFTC_Contract_Market_Code")]
+    tff_code: String,
+    #[serde(rename = "Open_Interest_All")]
+    open_interest_all: String,
+    #[serde(rename = "Dealer_Positions_Long_All")]
+    dealer_long: String,
+    #[serde(rename = "Dealer_Positions_Short_All")]
+    dealer_short: String,
+    #[serde(rename = "Dealer_Positions_Spread_All")]
+    dealer_spread: String,
+    #[serde(rename = "Asset_Mgr_Positions_Long_All")]
+    asset_mgr_long: String,
+    #[serde(rename = "Asset_Mgr_Positions_Short_All")]
+    asset_mgr_short: String,
+    #[serde(rename = "Asset_Mgr_Positions_Spread_All")]
+    asset_mgr_spread: String,
+    #[serde(rename = "Lev_Money_Positions_Long_All")]
+    lev_money_long: String,
+    #[serde(rename = "Lev_Money_Positions_Short_All")]
+    lev_money_short: String,
+    #[serde(rename = "Lev_Money_Positions_Spread_All")]
+    lev_money_spread: String,
+    #[serde(rename = "Other_Rept_Positions_Long_All")]
+    other_rept_long: String,
+    #[serde(rename = "Other_Rept_Positions_Short_All")]
+    other_rept_short: String,
+    #[serde(rename = "Other_Rept_Positions_Spread_All")]
+    other_rept_spread: String,
+}
+
+#[derive(Deserialize, Debug)]
+struct ProcessedCot{
+    #[serde(rename = "Market_and_Exchange_Names")]
+    market_name: String,
+    #[serde(rename = "Report_Date_as_YYYY-MM-DD")]
+    report_date: DateTime<Utc>,
+    #[serde(rename = "CFTC_Contract_Market_Code")]
+    tff_code: String,
+    #[serde(rename = "Open_Interest_All")]
+    open_interest_all: f64,
+    #[serde(rename = "Dealer_Positions_Long_All")]
+    dealer_long: i64,
+    #[serde(rename = "Dealer_Positions_Short_All")]
+    dealer_short: i64,
+    #[serde(rename = "Dealer_Positions_Spread_All")]
+    dealer_spread: i64,
+    #[serde(rename = "Asset_Mgr_Positions_Long_All")]
+    asset_mgr_long: i64,
+    #[serde(rename = "Asset_Mgr_Positions_Short_All")]
+    asset_mgr_short: i64,
+    #[serde(rename = "Asset_Mgr_Positions_Spread_All")]
+    asset_mgr_spread: i64,
+    #[serde(rename = "Lev_Money_Positions_Long_All")]
+    lev_money_long: i64,
+    #[serde(rename = "Lev_Money_Positions_Short_All")]
+    lev_money_short: i64,
+    #[serde(rename = "Lev_Money_Positions_Spread_All")]
+    lev_money_spread: i64,
+    #[serde(rename = "Other_Rept_Positions_Long_All")]
+    other_rept_long: i64,
+    #[serde(rename = "Other_Rept_Positions_Short_All")]
+    other_rept_short: i64,
+    #[serde(rename = "Other_Rept_Positions_Spread_All")]
+    other_rept_spread: i64,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+struct CotReport {
+    market_name: String,
+    report_date: NaiveDate,
+    tff_code: String,
+    open_interest_all: Decimal,
+    dealer_long: Decimal,
+    dealer_short: Decimal,
+    dealer_spread: Decimal,
+    asset_mgr_long: Decimal,
+    asset_mgr_short: Decimal,
+    asset_mgr_spread: Decimal,
+    lev_money_long: Decimal,
+    lev_money_short: Decimal,
+    lev_money_spread: Decimal,
+    other_rept_long: Decimal,
+    other_rept_short: Decimal,
+    other_rept_spread: Decimal,
+}
+
+impl TryFrom<RawCot> for CotReport {
+    type Error = Box<dyn Error>;
+
+    fn try_from(raw: RawCot) -> Result<Self, Self::Error> {
+        Ok(CotReport {
+            market_name: raw.market_name,
+            report_date: NaiveDate::parse_from_str(&raw.report_date, "%Y-%m-%d")?,
+            tff_code: raw.tff_code,
+            open_interest_all: raw.open_interest_all.parse::<Decimal>()?,
+            dealer_long: Decimal::from_str(&raw.dealer_long.replace(',', ""))?,
+            dealer_short: Decimal::from_str(&raw.dealer_short.replace(',', ""))?,
+            dealer_spread: Decimal::from_str(&raw.dealer_spread.replace(',', ""))?,
+            asset_mgr_long: Decimal::from_str(&raw.asset_mgr_long.replace(',', ""))?,
+            asset_mgr_short: Decimal::from_str(&raw.asset_mgr_short.replace(',', ""))?,
+            asset_mgr_spread: Decimal::from_str(&raw.asset_mgr_spread.replace(',', ""))?,
+            lev_money_long: Decimal::from_str(&raw.lev_money_long.replace(',', ""))?,
+            lev_money_short: Decimal::from_str(&raw.lev_money_short.replace(',', ""))?,
+            lev_money_spread: Decimal::from_str(&raw.lev_money_spread.replace(',', ""))?,
+            other_rept_long: Decimal::from_str(&raw.other_rept_long.replace(',', ""))?,
+            other_rept_short: Decimal::from_str(&raw.other_rept_short.replace(',', ""))?,
+            other_rept_spread: Decimal::from_str(&raw.other_rept_spread.replace(',', ""))?,
+        })
+
+    }
+}
+
+
+
+
 
 //=======================================================================================================
 // COT Data Fetching
@@ -142,77 +269,7 @@ pub fn parse_cftc_numbers(value: &str) -> Result<i64, ParseIntError> {
     }
 }
 
-#[derive(Deserialize, Debug)]
-struct RawCot{
-    #[serde(rename = "Market_and_Exchange_Names")]
-    market_name: String,
-    #[serde(rename = "Report_Date_as_YYYY-MM-DD")]
-    report_date: String,
-    #[serde(rename = "CFTC_Contract_Market_Code")]
-    tff_code: String,
-    #[serde(rename = "Open_Interest_All")]
-    open_interest_all: String,
-    #[serde(rename = "Dealer_Positions_Long_All")]
-    dealer_long: String,
-    #[serde(rename = "Dealer_Positions_Short_All")]
-    dealer_short: String,
-    #[serde(rename = "Dealer_Positions_Spread_All")]
-    dealer_spread: String,
-    #[serde(rename = "Asset_Mgr_Positions_Long_All")]
-    asset_mgr_long: String,
-    #[serde(rename = "Asset_Mgr_Positions_Short_All")]
-    asset_mgr_short: String,
-    #[serde(rename = "Asset_Mgr_Positions_Spread_All")]
-    asset_mgr_spread: String,
-    #[serde(rename = "Lev_Money_Positions_Long_All")]
-    lev_money_long: String,
-    #[serde(rename = "Lev_Money_Positions_Short_All")]
-    lev_money_short: String,
-    #[serde(rename = "Lev_Money_Positions_Spread_All")]
-    lev_money_spread: String,
-    #[serde(rename = "Other_Rept_Positions_Long_All")]
-    other_rept_long: String,
-    #[serde(rename = "Other_Rept_Positions_Short_All")]
-    other_rept_short: String,
-    #[serde(rename = "Other_Rept_Positions_Spread_All")]
-    other_rept_spread: String,
-}
 
-#[derive(Deserialize, Debug)]
-struct ProcessedCot{
-    #[serde(rename = "Market_and_Exchange_Names")]
-    market_name: String,
-    #[serde(rename = "Report_Date_as_YYYY-MM-DD")]
-    report_date: DateTime<Utc>,
-    #[serde(rename = "CFTC_Contract_Market_Code")]
-    tff_code: String,
-    #[serde(rename = "Open_Interest_All")]
-    open_interest_all: f64,
-    #[serde(rename = "Dealer_Positions_Long_All")]
-    dealer_long: i64,
-    #[serde(rename = "Dealer_Positions_Short_All")]
-    dealer_short: i64,
-    #[serde(rename = "Dealer_Positions_Spread_All")]
-    dealer_spread: i64,
-    #[serde(rename = "Asset_Mgr_Positions_Long_All")]
-    asset_mgr_long: i64,
-    #[serde(rename = "Asset_Mgr_Positions_Short_All")]
-    asset_mgr_short: i64,
-    #[serde(rename = "Asset_Mgr_Positions_Spread_All")]
-    asset_mgr_spread: i64,
-    #[serde(rename = "Lev_Money_Positions_Long_All")]
-    lev_money_long: i64,
-    #[serde(rename = "Lev_Money_Positions_Short_All")]
-    lev_money_short: i64,
-    #[serde(rename = "Lev_Money_Positions_Spread_All")]
-    lev_money_spread: i64,
-    #[serde(rename = "Other_Rept_Positions_Long_All")]
-    other_rept_long: i64,
-    #[serde(rename = "Other_Rept_Positions_Short_All")]
-    other_rept_short: i64,
-    #[serde(rename = "Other_Rept_Positions_Spread_All")]
-    other_rept_spread: i64,
-}
 
 
 //=======================================================================================================
