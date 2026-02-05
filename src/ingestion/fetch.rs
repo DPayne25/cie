@@ -343,3 +343,48 @@ pub async fn fetch_fx_price_data(
     Ok(())
 } 
 
+
+
+//=======================================================================================================
+//Testing Module
+//=======================================================================================================
+
+#[cfg(test)] // Only compiles when running 'cargo test'
+mod tests {
+    use super::*;
+    use rust_decimal_macros::dec; // You might need to add this to Cargo.toml
+
+    #[test]
+    fn test_cot_parsing_logic() {
+        // 1. Create a Fake Raw Record (Mock Data)
+        let raw = RawCot {
+            market_name: "EURO FX".to_string(),
+            report_date: "2024-01-01".to_string(),
+            tff_code: "099741".to_string(),
+            open_interest_all: "100.5".to_string(),
+            dealer_long: "1,234".to_string(), // Test comma removal
+            // ... fill other fields with dummy strings ...
+            dealer_short: "0".to_string(),
+            dealer_spread: "0".to_string(),
+            asset_mgr_long: "0".to_string(),
+            asset_mgr_short: "0".to_string(),
+            asset_mgr_spread: "0".to_string(),
+            lev_money_long: "0".to_string(),
+            lev_money_short: "0".to_string(),
+            lev_money_spread: "0".to_string(),
+            other_rept_long: "0".to_string(),
+            other_rept_short: "0".to_string(),
+            other_rept_spread: "0".to_string(),
+        };
+
+        // 2. Run the Logic
+        let result = CotReport::try_from(raw);
+
+        // 3. Assert Expectations
+        assert!(result.is_ok());
+        let report = result.unwrap();
+        
+        assert_eq!(report.tff_code, "099741");
+        assert_eq!(report.dealer_long, dec!(1234)); // Verified comma was removed!
+    }
+}

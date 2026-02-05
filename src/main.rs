@@ -17,8 +17,7 @@ use thiserror::Error;
 async fn main() -> anyhow::Result<(), Box<dyn Error>> {
 
 
-    let config = config::SentinelConfig::from_env()?
-        .ok_or(config::ConfigError::InvalidConfig)?;
+    let config = config::SentinelConfig::from_env()?;
 
     let db_pool = db::connection::connect_db(&config).await?;
 
