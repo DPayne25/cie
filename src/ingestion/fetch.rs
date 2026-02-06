@@ -254,26 +254,17 @@ struct FxPriceRow<'a> {
 
 
 pub async fn fetch_fx_price_data(
-    client: &reqwest::Client,
-    config: &config::SentinelConfig,
+    oanda_client: &fxoanda::Client,
     pool: &PgPool,
     instrument: &str,  
     granularity: &str, 
-    price_type: &str
+    price_type: &str,
+    default_start_date: DateTime<Utc>,
 ) -> Result<(), Box<dyn Error>> {
 
     let start_date: DateTime<Utc> = util::get_latest_timestamp(&pool, instrument)
         .await?
-        .unwrap_or(config.default_start_date);
-
-    let api_key: String = config.oanda_api_key.clone();
-
-    let oanda_client= fxoanda::Client {
-        reqwest: client.clone(),
-        host: config.oanda_host,
-        authentication: api_key,
-    };
-
+        .unwrap_or(default_start_date);
 
     let get_data = fxoanda::GetInstrumentCandlesRequest::new()
         .with_instrument(instrument.to_string())

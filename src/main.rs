@@ -23,6 +23,12 @@ async fn main() -> anyhow::Result<(), Box<dyn Error>> {
 
     let client = reqwest::Client::new();
 
+    let oanda_client = fxoanda::Client{
+        reqwest: client.clone(),
+        host: config.oanda_host.clone(),
+        authentication: config.oanda_api_key.clone(),
+    };
+
     let current_year: i32 = chrono::Utc::now().year();
 
 //==================================================
@@ -62,12 +68,12 @@ async fn main() -> anyhow::Result<(), Box<dyn Error>> {
 
     let fetch_all_fx_data = fx_pairs.iter().map(|pair| {
         ingestion::fetch::fetch_fx_price_data(
-            &client,
-            &config,
+            &oanda_client,
             &db_pool, 
             pair, 
              "D", 
-            "M"
+            "M",
+            config.default_start_date,
         )
     });
     
