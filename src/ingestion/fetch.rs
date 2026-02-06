@@ -108,7 +108,7 @@ impl TryFrom<RawCot> for CotReport {
 // COT Data Fetching
 //=======================================================================================================
 
-pub async fn fetch_cot_data(year: i32, pool: &PgPool) -> Result<(), Box<dyn Error>> {
+pub async fn fetch_cot_data(year: i32, pool: PgPool) -> Result<(), Box<dyn Error>> {
     
     let cot_request = reqwest::get(format!("https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip", year))
         .await?

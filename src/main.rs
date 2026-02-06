@@ -34,9 +34,18 @@ async fn main() -> anyhow::Result<(), Box<dyn Error>> {
     .fetch_one(&db_pool)
     .await?;
 
-    for year in start_year..=current_year {
-        println!("--- Syncing Year: {} ---", year);
-        ingestion::fetch::fetch_cot_data(year, &db_pool).await?;
+    let cot_fetch_tasks = (start_year..=current_year).map(|year| {
+        println!("--- Syncing task for COT data for year: {} ---", year);
+
+        ingestion::fetch::fetch_cot_data(year, db_pool.clone())
+    });
+    
+    let results = join_all(cot_fetch_tasks).await;
+
+    for result in results {
+        if let Err(e) = result {
+            eprintln!("※ A COT ingestion task failed: {}", e);
+        }
     }
 
 //==================================================
