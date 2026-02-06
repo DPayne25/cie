@@ -118,7 +118,11 @@ pub async fn fetch_cot_data(year: i32, pool: PgPool) -> Result<(), Box<dyn Error
     let mut archive = ZipArchive::new(Cursor::from(cot_request))?;
     
     let index_zip = (0..archive.len())
-        .find(|&i| {archive.by_index(i).unwrap().name().ends_with(".txt")})
+        .find(|&i| {
+            match archive.by_index(i){
+                Ok(file_) => file.name().ends_with(".txt"),
+                Err(_) => false,
+            }
         .ok_or("※ No .txt file found in the ZIP archive.")?;   
     
     let file = archive.by_index(index_zip)?;
