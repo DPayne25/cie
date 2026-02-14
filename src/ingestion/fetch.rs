@@ -3,19 +3,77 @@ use chrono::{DateTime, Utc, TimeZone};
 use dotenvy::dotenv;
 use fxoanda;
 
-
-
-pub async fn fetch_cot_data() -> Result<(), Box<dyn std::error::Error>> {
+pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
     
-    let cot_data = reqwest::get("https://www.cftc.gov/dea/newcot/FinFutWk.txt")
+    let cot_request = reqwest::get(format!("https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip", year))
         .await?
-        .text()
+        .bytes()
         .await?;
 
-    fs::write("data/raw/cot/date-RawCOTReport.csv", cot_data)?;
+    let mut archive = ZipArchive::new(Cursor::from(cot_request))?;
+    
+    let mut index_zip = None;
+
+    for i in 0..archive.len() {
+        
+        if let Ok(file) = archive.by_index(i) {
+            
+            if file.name().ends_with(".txt") {
+                index_zip = Some(i);
+                break; 
+            }
+        }
+    }
+
+    // 4. Handle the Option result
+    let final_index = index_zip.ok_or("※ No .txt file found")?;
+    
+    let file = archive.by_index(final_index)?;
+
+    let cot_data = csv::ReaderBuilder::new()
+        .from_reader(file);
+
+    let target_tff_codes  = ["090741","092741", "096742", "097741", "099741", "232741", "112741", "095741", "120741", "216742", "233741"];
+
+    let mut reports: Vec<CotReport> = Vec::new();
+
+
+    for result in cot_data.into_deserialize::<RawCot>() {
+        // Handle CSV/Deserialization errors safely
+        let record = match result {
+            Ok(rec) => rec,
+            Err(e) => {
+                eprintln!("※ Skipping malformed CSV record: {}", e);
+                continue;
+            }
+        };
+
+        if target_tff_codes.contains(&record.tff_code.as_str()) {
+            // Handle Domain Parsing errors safely
+            match CotReport::try_from(record) {
+
+                Ok(cot_report) => reports.push(cot_report),
+
+                Err(e) => {
+
+                    eprintln!("※ Data Corruption Detected. Skipping Row: {}", e);
+                
+                    continue;
+                }
+            }
+        }
+    }
+
+    if reports.is_empty() {
+        println!("※ Warning: No valid records found for year {}.", year);
+        return Ok(())
+    }
+
+    println!("• Batching {} records for insertion...", reports.len());
 
     Ok(())
 } 
+
 
 pub async fn fetch_fx_price_data(
     client: &reqwest::Client,
