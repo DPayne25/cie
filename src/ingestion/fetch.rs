@@ -1,4 +1,4 @@
-use std::{fs::{self, File}, env, error::Error, str::FromStr, path::Path, io};
+use std::{fs::{self, File}, env, error::Error, path::Path, io};
 use chrono::{DateTime, Utc, TimeZone};
 use dotenvy::dotenv;
 use fxoanda;
@@ -8,84 +8,29 @@ use zip::ZipArchive;
 
 pub async fn fetch_cot_data(year: i64) -> Result<String, Box<dyn Error>> {
     
-    // Using bytes in preparation for a future hard disk bypass version
-    let cot_request = reqwest::get(format!("https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip", year))
-        .await?
-        .bytes()
-        .await?;
+    let url = format!("https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip", year);
 
-    let mut archive = ZipArchive::new(io::Cursor::new(cot_request))?;
-    
-    let mut index_zip = None;
+    println!("• Fetching COT data from: {}", url);
 
-    for i in 0..archive.len() {
-        
-        if let Ok(file) = archive.by_index(i) {
-            
-            if file.name().ends_with(".txt") {
-                index_zip = Some(i);
-                break; 
-            }
-        }
-    }
+    let response_bytes = reqwest::get(&url).await?.bytes().await?;
+    let cursor = io::Cursor::new(response_bytes);
+    let mut archive = ZipArchive::new(cursor)?;
 
-    // 4. Handle the Option result
-    let final_index = index_zip.ok_or("※ No .txt file found")?;
-    
-    let file_in_zip = archive.by_index(final_index)?;
+    let mut file_in_zip = archive.by_name("FinFutWk.txt")
+        .map_err(|_| format!("Could not find 'FinFutWk.txt' in archive for year {}", year))?;
 
-    let cot_data = csv::ReaderBuilder::new()
-        .from_reader(file_in_zip);
+    let out_dir = Path::new("data/raw/cot");
+    fs::create_dir_all(out_dir)?;
 
-    let target_tff_codes  = ["090741","092741", "096742", "097741", "099741", "232741", "112741", "095741", "120741", "216742", "233741"];
+    let temp_path_str = "data/raw/cot/date-RawCOTReport.csv";
+    let out_path = Path::new(temp_path_str);
+    let mut outfile = File::create(&out_path)?;
 
-    let mut reports: Vec<CotReport> = Vec::new();
+    io::copy(&mut file_in_zip, &mut outfile)?;
 
+    println!("• Successfully extracted and saved raw COT data to: {:?}", out_path);
 
-    for result in cot_data.into_deserialize::<RawCot>() {
-        // Handle CSV/Deserialization errors safely
-        let record = match result {
-            Ok(rec) => rec,
-            Err(e) => {
-                eprintln!("※ Skipping malformed CSV record: {}", e);
-                continue;
-            }
-        };
-
-        if target_tff_codes.contains(&record.tff_code.as_str()) {
-            // Handle Domain Parsing errors safely
-            match CotReport::try_from(record) {
-
-                Ok(cot_report) => reports.push(cot_report),
-
-                Err(e) => {
-
-                    eprintln!("※ Data Corruption Detected. Skipping Row: {}", e);
-                
-                    continue;
-                }
-            }
-        }
-    }
-
-    if reports.is_empty() {
-        println!("※ Warning: No valid records found for year {}.", year);
-        return Ok(())
-    }
-
-    let path = "data/cot_alpha_export.csv";
-
-    let mut writer = csv::Writer::from_path(path)?;
-
-    for report in reports {
-        writer.serialize(report)?;
-    }
-
-    writer.flush()?;
-
-    //println!("• Batching {} records for insertion...", reports.len());
-
-    Ok(())
+    Ok(temp_path_str.to_string())
 } 
 
 
