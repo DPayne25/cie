@@ -88,7 +88,13 @@ impl TryFrom<RawCot> for CotReport {
     }
 }
 
-
+pub fn parse_cftc_numbers(value: &str) -> Result<i64, ParseIntError> { 
+    if value.contains(',') {
+        value.replace(",", "").trim().parse()
+    } else {
+        value.trim().parse()
+    }
+}
 
 pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
     
