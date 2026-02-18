@@ -1,9 +1,10 @@
-use std::{fs, env, io};
-use chrono::{DateTime, Utc, TimeZone};
+use std::{fs, env, error::Error, str::FromStr, num::ParseIntError, io::{self,Cursor}};
+use chrono::{DateTime, Utc, TimeZone, NaiveDate};
 use dotenvy::dotenv;
 use fxoanda;
-use csv::{Writer, WriterBuilder, Reader, ReaderBuilder};
+use rust_decimal::Decimal;
 use serde::{Serialize, Deserialize};
+use zip::ZipArchive;
 
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -104,7 +105,7 @@ pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
         .bytes()
         .await?;
 
-    let mut archive = ZipArchive::new(Cursor::from(cot_request))?;
+    let mut archive = ZipArchive::new(std::io::Cursor::from(cot_request))?;
     
     let mut index_zip = None;
 
