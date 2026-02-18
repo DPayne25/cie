@@ -16,13 +16,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "NZD_USD"];
 
     let client = reqwest::Client::new();
+
+     // let current_year: i32 = chrono::Utc::now().year();
+
+    ingestion::fetch::fetch_cot_data(2025).await?;
   
-    let cot_fetch_tasks = (start_year..=current_year).map(|year| {
-        println!("--- Syncing task for COT data for year: {} ---", year);
-
-        ingestion::fetch::fetch_cot_data(year)
-    });
-
     let fetch_all_fx_data = fx_pairs.iter().map(|pair| {
         ingestion::fetch::fetch_fx_price_data(&client, 
             pair, 

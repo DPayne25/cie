@@ -100,7 +100,7 @@ pub fn parse_cftc_numbers(value: &str) -> Result<i64, ParseIntError> {
 }
 */
 
-pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
+pub async fn fetch_cot_data(year: i64) -> Result<(), Box<dyn Error>> {
     
     // Using bytes in preparation for a future hard disk bypass version
     let cot_request = reqwest::get(format!("https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip", year))
