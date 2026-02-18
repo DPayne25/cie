@@ -1,7 +1,8 @@
-use std::{fs, env, error::Error, str::FromStr, num::ParseIntError, io::{self,Cursor}};
+use std::{fs, env, error::Error, str::FromStr, num::ParseIntError, io::{self, Cursor}};
 use chrono::{DateTime, Utc, TimeZone, NaiveDate};
 use dotenvy::dotenv;
 use fxoanda;
+use csv::ReaderBuilder;
 use rust_decimal::Decimal;
 use serde::{Serialize, Deserialize};
 use zip::ZipArchive;
@@ -89,6 +90,7 @@ impl TryFrom<RawCot> for CotReport {
     }
 }
 
+/*
 pub fn parse_cftc_numbers(value: &str) -> Result<i64, ParseIntError> { 
     if value.contains(',') {
         value.replace(",", "").trim().parse()
@@ -96,6 +98,7 @@ pub fn parse_cftc_numbers(value: &str) -> Result<i64, ParseIntError> {
         value.trim().parse()
     }
 }
+*/
 
 pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
     
@@ -105,7 +108,7 @@ pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
         .bytes()
         .await?;
 
-    let mut archive = ZipArchive::new(std::io::Cursor::from(cot_request))?;
+    let mut archive = ZipArchive::new(io::Cursor::new(cot_request))?;
     
     let mut index_zip = None;
 
@@ -164,7 +167,7 @@ pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
         return Ok(())
     }
 
-    let path = "/data/cot_alpha_export.csv";
+    let path = "data/cot_alpha_export.csv";
 
     let mut writer = csv::Writer::from_path(path)?;
 
@@ -174,7 +177,7 @@ pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
 
     writer.flush()?;
 
-    println!("• Batching {} records for insertion...", reports.len());
+    //println!("• Batching {} records for insertion...", reports.len());
 
     Ok(())
 } 
