@@ -1,10 +1,11 @@
-use std::{fs, env};
+use std::{fs, env, io};
 use chrono::{DateTime, Utc, TimeZone};
 use dotenvy::dotenv;
 use fxoanda;
 
 pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
     
+    // Using bytes in preparation for a future hard disk bypass version
     let cot_request = reqwest::get(format!("https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip", year))
         .await?
         .bytes()
@@ -28,10 +29,10 @@ pub async fn fetch_cot_data(year: i32) -> Result<(), Box<dyn Error>> {
     // 4. Handle the Option result
     let final_index = index_zip.ok_or("※ No .txt file found")?;
     
-    let file = archive.by_index(final_index)?;
+    let file_in_zip = archive.by_index(final_index)?;
 
     let cot_data = csv::ReaderBuilder::new()
-        .from_reader(file);
+        .from_reader(file_in_zip);
 
     let target_tff_codes  = ["090741","092741", "096742", "097741", "099741", "232741", "112741", "095741", "120741", "216742", "233741"];
 
