@@ -366,7 +366,9 @@ I decided unapologetically use the AI along this process to teach me and expose 
 
         
     - [x] _Validation:_ Manually open CSV in PowerBI/Text Editor to ensure no encoding issues.
-
+    
+    - Data from 2016 to 2026 downloaded and imported to Power BI to create dashboard.
+ 
 - [ ] **[IE-v2] The Database Bridge (Hybrid)**
     
     - Objective: Read the validated CSVs from disk and batch-insert into Postgres.
