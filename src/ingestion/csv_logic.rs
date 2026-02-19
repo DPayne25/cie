@@ -31,18 +31,14 @@ pub fn csv_validate() -> Result<(), Box<dyn std::error::Error>> {
 
 pub fn rename_csv(year: i64) -> Result<(), Box<dyn Error>> {
     let path1 = "data/raw/cot/date-RawCOTReport.csv";
-    let path2 = "data/processed/cot/date-ProcessedCOTReport.csv";
 
 
     let new_path1 = format!("data/raw/cot/{}-RawCOTReport.csv", year);
-    let new_path2 = format!("data/processed/cot/{}-ProcessedCOTReport.csv", year);
 
     fs::rename(path1, &new_path1)?;
-    fs::rename(path2, &new_path2)?;
 
     // Confirm rename
     println!("• Successfully renamed file to {}", new_path1); 
-    println!("• Successfully renamed file to {}", new_path2); 
 
     Ok(())
 }
