@@ -13,7 +13,7 @@ pub async fn fetch_cot_data(year: i64) -> Result<String, Box<dyn Error>> {
     let cursor = io::Cursor::new(response_bytes);
     let mut archive = ZipArchive::new(cursor)?;
 
-    let mut file_in_zip = archive.by_name("FinFutWk.txt")
+    let mut file_in_zip = archive.by_index(0)
         .map_err(|_| format!("Could not find 'FinFutWk.txt' in archive for year {}", year))?;
 
     let out_dir = Path::new("data/raw/cot");
