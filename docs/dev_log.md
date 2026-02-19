@@ -358,14 +358,14 @@ I decided unapologetically use the AI along this process to teach me and expose 
 
 **Goal:** Automate data retrieval from CFTC and FX Providers.
 
-- [ ] **[IE-v1] The File-System MVP (Disk-Bound)**
+- [x] **[IE-v1] The File-System MVP (Disk-Bound)**
     
     - Objective: Successfully pull raw bytes from CFTC/Oanda and write to `/data/raw/`.
         
-    - [ ] _Task:_ Implement `reqwest` for HTTP GET and `std::fs` for file persistence.
+    - [x] _Task:_ Implement `reqwest` for HTTP GET and `std::fs` for file persistence.
 
         
-    - [ ] _Validation:_ Manually open CSV in Excel/Text Editor to ensure no encoding issues.
+    - [x] _Validation:_ Manually open CSV in PowerBI/Text Editor to ensure no encoding issues.
 
 - [ ] **[IE-v2] The Database Bridge (Hybrid)**
     
