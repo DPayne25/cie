@@ -1,21 +1,9 @@
-use std::{fs, env};
+use reqwest;
+use std::{fs, env, error::Error};
 use chrono::{DateTime, Utc, TimeZone};
 use dotenvy::dotenv;
 use fxoanda;
 
-
-
-pub async fn fetch_cot_data() -> Result<(), Box<dyn std::error::Error>> {
-    
-    let cot_data = reqwest::get("https://www.cftc.gov/dea/newcot/FinFutWk.txt")
-        .await?
-        .text()
-        .await?;
-
-    fs::write("data/raw/cot/date-RawCOTReport.csv", cot_data)?;
-
-    Ok(())
-} 
 
 pub async fn fetch_fx_price_data(
     client: &reqwest::Client,
@@ -23,7 +11,7 @@ pub async fn fetch_fx_price_data(
     //from_date: DateTime<Utc>, 
     granularity: &str, 
     price_type: &str
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn Error>> {
     let dt: DateTime<Utc> = Utc.with_ymd_and_hms(2016, 1, 1, 0, 0, 0).unwrap(); //todo line 23
 
     dotenv().ok();

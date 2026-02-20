@@ -354,17 +354,37 @@ I decided unapologetically use the AI along this process to teach me and expose 
 >
     >"Now. What I want you to do is summarize this particular. conversation include all the documentations and connected to the segments that solve the problem like this documentation documentation helped us solve this particular problem. Okay, and really make it simple to read because I will be reviewing it and going to the documentation. For myself and recognize also that I will be pacing this into my obsidian note folder or no Vault. So put it in markdown and Link it to particular lines so that it's easily referenceable for this was the problem or topic that we talked about and this was the documentation that links to that and not like you to put it in kind of like a bullet point format the best that you can you can include headers as well to just categorize the issue and if you want to add a brief description that you section don't make it any more than four sentences long. Got it. Do you need any clarification?"
 
-- [ ] Insert raw data into Postgres.
+### [P3] Ingestion Engine (IE)
 
-Execution & Solution:
+**Goal:** Automate data retrieval from CFTC and FX Providers.
 
-- [ ] Log run metadata (date, checksum, status).
+- [x] **[IE-v1] The File-System MVP (Disk-Bound)**
+    
+    - Objective: Successfully pull raw bytes from CFTC/Oanda and write to `/data/raw/`.
+        
+    - [x] _Task:_ Implement `reqwest` for HTTP GET and `std::fs` for file persistence.
 
-Execution & Solution:
-
-- [ ] Fail loudly on: Schema changes, Missing data, Partial loads.
-
-Execution & Solution:
+        
+    - [x] _Validation:_ Manually open CSV in PowerBI/Text Editor to ensure no encoding issues.
+    
+    - Data from 2016 to 2026 downloaded and imported to Power BI to create dashboard.
+ 
+- [ ] **[IE-v2] The Database Bridge (Hybrid)**
+    
+    - Objective: Read the validated CSVs from disk and batch-insert into Postgres.
+        
+    - [ ] _Task:_ Use `csv` crate for parsing and `sqlx` (or `postgres`) for `COPY` or `INSERT` commands.
+        
+    - [ ] _Validation:_ Run `SELECT COUNT(*)` in Postgres to match CSV row counts.
+        
+- [ ] **[IE-v3] The Direct Pipeline (Stream-to-DB)**
+    
+    - Objective: Bypass the physical disk entirely.
+        
+    - [ ] _Task:_ Refactor `cot_fetch.rs` to pipe the HTTP response body directly into a parser and then into a DB transaction.
+        
+    - [ ] _Validation:_ Successful ingestion without a trace of a `.csv` file in the `/data/` folder.
+        
 
 # [P4] Transformation & Intelligence (TI)
 

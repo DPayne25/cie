@@ -17,10 +17,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let client = reqwest::Client::new();
   
-    ingestion::fetch::fetch_cot_data().await?;
-
     let fetch_all_fx_data = fx_pairs.iter().map(|pair| {
-        ingestion::fetch::fetch_fx_price_data(&client, 
+        ingestion::fetch_fxprice::fetch_fx_price_data(&client, 
             pair, 
             "D", 
             "M")
@@ -28,11 +26,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     join_all(fetch_all_fx_data).await;
 
-    ingestion::csv_logic::csv_validate()?;  
+    for year in 2016..=2026 {
 
-    ingestion::csv_logic::csv_process_raw_cot()?; 
-    
-    ingestion::csv_logic::rename_csv()?;
+        ingestion::fetch_cot::fetch_cot_data(year).await?;
+
+        ingestion::csv_logic::csv_validate()?;  
+
+        ingestion::csv_logic::csv_process_raw_cot()?; 
+        
+        ingestion::csv_logic::rename_csv(year)?;
+    }
+
 
    println!("• Mission Complete: Ingestion Completed Successfully.");
 
