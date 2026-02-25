@@ -14,11 +14,7 @@ pub fn csv_validate() -> Result<(), Box<dyn std::error::Error>> {
     for(i, result) in reader.records().enumerate() {
         match result {
             Ok(record) => {
-                if let Some(tff_code) = record.get(3) {
-                    if confirm_tff_codes.contains(&tff_code) {
-                        println!("• TFF code {} found in row {}", tff_code, i + 1); 
-                    }
-                }
+                continue;
             }
             Err(e) => eprintln!("• Error reading row {}: {}", i + 1, e)
         }

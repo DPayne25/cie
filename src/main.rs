@@ -1,4 +1,6 @@
 mod ingestion;
+use std::path::Path;
+
 use futures::future::join_all;
 
 
@@ -28,13 +30,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for year in 2016..=2026 {
 
-        ingestion::fetch_cot::fetch_cot_data(year).await?;
+        if Path::new("data/raw/cot/{year}-RawCOTReport.csv").exists() {
+          continue;
+        } else {  
 
-        ingestion::csv_logic::csv_validate()?;  
+            ingestion::fetch_cot::fetch_cot_data(year).await?;
 
-        ingestion::csv_logic::csv_process_raw_cot()?; 
-        
-        ingestion::csv_logic::rename_csv(year)?;
+            ingestion::csv_logic::csv_validate()?;  
+
+            ingestion::csv_logic::csv_process_raw_cot()?; 
+            
+            ingestion::csv_logic::rename_csv(year)?;
+        }
     }
 
 
