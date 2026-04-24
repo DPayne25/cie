@@ -242,6 +242,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "cie"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "crc",
+ "csv",
+ "cursor",
+ "dotenvy",
+ "futures",
+ "fxoanda",
+ "fxoanda_definitions",
+ "openssl",
+ "postgres",
+ "reqwest",
+ "rust_decimal",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "sqlx",
+ "time",
+ "tokio",
+ "tokio-postgres",
+ "zip",
+]
+
+[[package]]
 name = "cipher"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2006,32 +2032,6 @@ name = "semver"
 version = "1.0.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d767eb0aabc880b29956c35734170f26ed551a859dbd361d140cdbeca61ab1e2"
-
-[[package]]
-name = "sentinel_iaie"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "crc",
- "csv",
- "cursor",
- "dotenvy",
- "futures",
- "fxoanda",
- "fxoanda_definitions",
- "openssl",
- "postgres",
- "reqwest",
- "rust_decimal",
- "serde",
- "serde_derive",
- "serde_json",
- "sqlx",
- "time",
- "tokio",
- "tokio-postgres",
- "zip",
-]
 
 [[package]]
 name = "serde"
