@@ -23,7 +23,7 @@ Each Friday at 18:00 EST (when CFTC data is released and markets are closed), th
 - **Volatility Context** — Risk amplification lens for each pair
 - **Pair Matching** — How do correlated contracts amplify signals?
 
-Starting with major FX pairs (EUR/USD, GBP/USD, USD/JPY, USD/CHF, AUD/USD, CAD/USD, NZD/USD). Full forex coverage in future versions.
+Starting with major FX pairs (EUR/USD, GBP/USD, USD/JPY, USD/CHF, AUD/USD, USD/CAD, NZD/USD). Full forex coverage in future versions.
 
 # Tech Stack
 - **Rust** — High-performance data ingestion and transformation
