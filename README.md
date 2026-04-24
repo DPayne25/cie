@@ -1,11 +1,11 @@
 ---
 author: DakotaJPayne
 date: 2025-12-24
-project: FXCOTDashboard
+project: cie
 ---
 
 # The Problem
-Most COT analysis tools are broken: cluttered free services with terrible UX, or expensive subscription tiers ($899–$1,399/year) that don't justify the cost for independent traders. The data exists, but it's buried.
+Most COT analysis tools are broken: cluttered free services with terrible UX, or expensive subscription tiers ($1,399/year) that don't justify the cost for independent traders. The data exists, but it's buried.
 
 # The Solution
 A production-grade Power BI dashboard that transforms raw CFTC Commitments of Traders (COT) reports into **actionable positioning intelligence** for forex traders. Real data. Clean visuals. Zero markup.

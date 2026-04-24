@@ -1,5 +1,5 @@
 [package]
-name = "sentinel_iaie"
+name = "cie"
 version = "0.1.0"
 edition = "2024"
 
