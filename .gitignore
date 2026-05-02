@@ -1,5 +1,5 @@
 /target
 /.env
 /config/database.env
-/data/processed/*
-/data/raw/*
+/.vscode
+/data
