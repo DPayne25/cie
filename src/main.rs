@@ -13,18 +13,33 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "AUD_USD", 
         "USD_CAD", 
         "USD_CHF", 
-        "NZD_USD"];
+        "NZD_USD",
+        "GBP_AUD",
+        "GBP_NZD",
+        "EUR_AUD",
+        "EUR_JPY",
+        "GBP_JPY",
+        "CAD_JPY"];
 
     let client = reqwest::Client::new();
   
-    let fetch_all_fx_data = fx_pairs.iter().map(|pair| {
+    let fetch_d_fx_data = fx_pairs.iter().map(|pair| {
         ingestion::fetch_fxprice::fetch_fx_price_data(&client, 
-            pair, 
-            "D", 
+            pair,  
             "M")
     });
+
+    println!("• Fetching D FX price data from: OANDA");
     
-    join_all(fetch_all_fx_data).await;
+    join_all(fetch_d_fx_data).await;
+
+    let fetch_h1_fx_data = fx_pairs.iter().map(|pair| {
+        ingestion::fetch_fxprice::fetch_fx_price_data(&client, 
+            pair,
+            "M")
+    });
+
+    println!("• Fetching COT data from: www.cftc.gov");
 
     for year in 2016..=2026 {
 
