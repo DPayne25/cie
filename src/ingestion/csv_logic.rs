@@ -15,8 +15,7 @@ pub fn csv_validate() -> Result<(), Box<dyn std::error::Error>> {
         match result {
             Ok(record) => {
                 if let Some(tff_code) = record.get(3) {
-                    if confirm_tff_codes.contains(&tff_code) {
-                        println!("• TFF code {} found in row {}", tff_code, i + 1); 
+                    if confirm_tff_codes.contains(&tff_code) { 
                     }
                 }
             }
@@ -24,7 +23,6 @@ pub fn csv_validate() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    println!("• Successful CSV validation. Valid TFF codes are available.");
     Ok(())
 }
 
@@ -40,9 +38,6 @@ pub fn rename_csv(year: i64) -> Result<(), Box<dyn Error>> {
     fs::rename(path1, &new_path1)?;
     fs::rename(path2, &new_path2)?;
 
-    // Confirm rename
-    println!("• Successfully renamed file to {}", new_path1); 
-    println!("• Successfully renamed file to {}", new_path2); 
 
     Ok(())
 }
@@ -73,7 +68,7 @@ pub fn csv_process_raw_cot() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
     writer.flush()?;
-    println!("• Processing successful. Filtered data saved to {}", output_path);
+
     Ok(())
 }
 

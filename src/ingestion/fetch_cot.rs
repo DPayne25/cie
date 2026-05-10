@@ -7,7 +7,6 @@ pub async fn fetch_cot_data(year: i64) -> Result<String, Box<dyn Error>> {
     
     let url = format!("https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip", year);
 
-    println!("• Fetching COT data from: {}", url);
 
     let response_bytes = reqwest::get(&url).await?.bytes().await?;
     let cursor = io::Cursor::new(response_bytes);
@@ -25,7 +24,6 @@ pub async fn fetch_cot_data(year: i64) -> Result<String, Box<dyn Error>> {
 
     io::copy(&mut file_in_zip, &mut outfile)?;
 
-    println!("• Successfully extracted and saved raw COT data to: {:?}", out_path);
 
     Ok(temp_path_str.to_string())
 } 
