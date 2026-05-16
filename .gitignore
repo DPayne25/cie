@@ -1,5 +1,8 @@
 /target
 /.env
 /config/database.env
+/data
 /data/processed/*
 /data/raw/*
+/.vscode
+/.sqlx
