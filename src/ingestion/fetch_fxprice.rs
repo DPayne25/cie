@@ -95,12 +95,5 @@ pub async fn fetch_fx_price_data(
         json_d,
     )?;
 
-    println!(
-        "Done. {} H1 candles, {} D candles for {}.",
-        all_candles_h1.len(),
-        all_candles_d.len(),
-        instrument
-    );
-
     Ok(())
 }

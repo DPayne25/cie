@@ -2,7 +2,6 @@ mod ingestion;
 use futures::future::join_all;
 
 
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
@@ -33,7 +32,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     join_all(fetch_d_fx_data).await;
 
-    let fetch_h1_fx_data = fx_pairs.iter().map(|pair| {
+    let _fetch_h1_fx_data = fx_pairs.iter().map(|pair| {
         ingestion::fetch_fxprice::fetch_fx_price_data(&client, 
             pair,
             "M")
