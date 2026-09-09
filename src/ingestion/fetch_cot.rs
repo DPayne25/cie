@@ -1,19 +1,26 @@
-use std::{fs::{self, File}, error::Error, path::Path, io};
-use rust_decimal::Decimal;
-use zip::ZipArchive;
-use sqlx::Type;
 use chrono;
+use rust_decimal::Decimal;
+use sqlx::Type;
+use std::{
+    error::Error,
+    fs::{self, File},
+    io,
+    path::Path,
+};
+use zip::ZipArchive;
 
 pub async fn fetch_cot_data(year: i32) -> Result<String, Box<dyn Error>> {
-    
-    let url = format!("https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip", year);
-
+    let url = format!(
+        "https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip",
+        year
+    );
 
     let response_bytes = reqwest::get(&url).await?.bytes().await?;
     let cursor = io::Cursor::new(response_bytes);
     let mut archive = ZipArchive::new(cursor)?;
 
-    let mut file_in_zip = archive.by_index(0)
+    let mut file_in_zip = archive
+        .by_index(0)
         .map_err(|_| format!("Could not find 'FinFutWk.txt' in archive for year {}", year))?;
 
     let out_dir = Path::new("data/raw/cot");
@@ -25,10 +32,8 @@ pub async fn fetch_cot_data(year: i32) -> Result<String, Box<dyn Error>> {
 
     io::copy(&mut file_in_zip, &mut outfile)?;
 
-
     Ok(temp_path_str.to_string())
-} 
-
+}
 
 #[derive(Debug, Clone, Type)]
 #[sqlx(type_name = "currency_base_type")] // Must match the exact PostgreSQL type name
@@ -47,7 +52,7 @@ pub struct DimCurrency {
 #[derive(Debug, sqlx::FromRow)]
 pub struct CotTff {
     pub market_exchange_names: String,
-    pub report_date: Date<>,
+    pub report_date: Date,
     pub cftc_market_code: String,
     pub open_interest: i32,
     pub dealer_positions_long: i32,
@@ -67,7 +72,7 @@ pub struct CotTff {
 #[derive(Debug, sqlx::FromRow)]
 pub struct FxPrice {
     pub currency_pair: String,
-    pub price_date: Date<>,
+    pub price_date: Date,
     pub complete: bool,
     pub open_price: Decimal,
     pub high_price: Decimal,

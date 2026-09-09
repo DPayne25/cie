@@ -1,36 +1,36 @@
-use std::{error::Error, format, fs, fs::File};
 #[allow(unused_imports)]
-use csv::{ReaderBuilder, Reader, WriterBuilder, Writer};
+use csv::{Reader, ReaderBuilder, Writer, WriterBuilder};
+use std::{error::Error, format, fs, fs::File};
 
 pub fn csv_validate() -> Result<(), Box<dyn std::error::Error>> {
-
     let file_path = "data/raw/cot/date-RawCOTReport.csv"; // #todo change to dynamic path (most recent file)
 
     let file = File::open(file_path)?;
 
-    let mut reader = csv::ReaderBuilder::new().has_headers(false).from_reader(file);
+    let mut reader = csv::ReaderBuilder::new()
+        .has_headers(false)
+        .from_reader(file);
 
-    let confirm_tff_codes = vec!["090741","092741", "096742", "097741", "099741", "232741", "112741"];
-    for(i, result) in reader.records().enumerate() {
+    let confirm_tff_codes = vec![
+        "090741", "092741", "096742", "097741", "099741", "232741", "112741",
+    ];
+    for (i, result) in reader.records().enumerate() {
         match result {
             Ok(record) => {
                 if let Some(tff_code) = record.get(3) {
-                    if confirm_tff_codes.contains(&tff_code) { 
-                    }
+                    if confirm_tff_codes.contains(&tff_code) {}
                 }
             }
-            Err(e) => eprintln!("• Error reading row {}: {}", i + 1, e)
+            Err(e) => eprintln!("• Error reading row {}: {}", i + 1, e),
         }
     }
 
     Ok(())
 }
 
-
 pub fn rename_csv(year: i32) -> Result<(), Box<dyn Error>> {
     let path1 = "data/raw/cot/date-RawCOTReport.csv";
     let path2 = "data/processed/cot/date-ProcessedCOTReport.csv";
-
 
     let new_path1 = format!("data/raw/cot/{}-RawCOTReport.csv", year);
     let new_path2 = format!("data/processed/cot/{}-ProcessedCOTReport.csv", year);
@@ -38,14 +38,10 @@ pub fn rename_csv(year: i32) -> Result<(), Box<dyn Error>> {
     fs::rename(path1, &new_path1)?;
     fs::rename(path2, &new_path2)?;
 
-
     Ok(())
 }
 
-
-
 pub fn csv_process_raw_cot() -> Result<(), Box<dyn std::error::Error>> {
-
     let input_path = "data/raw/cot/date-RawCOTReport.csv";
 
     let output_path = "data/processed/cot/date-ProcessedCOTReport.csv";
@@ -56,8 +52,9 @@ pub fn csv_process_raw_cot() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut writer = csv::Writer::from_path(output_path)?;
 
-    let confirm_tff_codes = vec!["090741","092741", "096742", "097741", "099741", "232741", "112741"];
-    
+    let confirm_tff_codes = vec![
+        "090741", "092741", "096742", "097741", "099741", "232741", "112741",
+    ];
 
     for result in reader.records() {
         let record = result?;
@@ -71,5 +68,3 @@ pub fn csv_process_raw_cot() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
-
-

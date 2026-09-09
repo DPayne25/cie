@@ -1,10 +1,10 @@
-use reqwest;
-use std::{env, error::Error, fs};
-use chrono::{DateTime, Utc, TimeZone, Duration};
+use chrono::{DateTime, Duration, TimeZone, Utc};
 use dotenvy::dotenv;
 use fxoanda;
-use tokio::time::sleep;
+use reqwest;
 use std::time::Duration as StdDuration;
+use std::{env, error::Error, fs};
+use tokio::time::sleep;
 
 pub async fn fetch_fx_price_data(
     client: &reqwest::Client,
@@ -85,7 +85,10 @@ pub async fn fetch_fx_price_data(
 
     let json_h1 = serde_json::to_string_pretty(&all_candles_h1)?;
     fs::write(
-        format!("data/raw/fx_prices/H1/{}_H1_RawFXPriceData.json", instrument),
+        format!(
+            "data/raw/fx_prices/H1/{}_H1_RawFXPriceData.json",
+            instrument
+        ),
         json_h1,
     )?;
 
