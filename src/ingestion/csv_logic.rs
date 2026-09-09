@@ -27,7 +27,7 @@ pub fn csv_validate() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 
-pub fn rename_csv(year: i64) -> Result<(), Box<dyn Error>> {
+pub fn rename_csv(year: i32) -> Result<(), Box<dyn Error>> {
     let path1 = "data/raw/cot/date-RawCOTReport.csv";
     let path2 = "data/processed/cot/date-ProcessedCOTReport.csv";
 

@@ -12,11 +12,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "AUD_USD", 
         //"USD_CAD", 
         //"USD_CHF", 
-        //"NZD_USD",
+        "NZD_USD",
         //"GBP_AUD",
         //"GBP_NZD",
         "EUR_AUD",
-        //"EUR_JPY",
+        "EUR_JPY",
         //"GBP_JPY",
         //"CAD_JPY"
         ];
