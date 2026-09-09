@@ -7,18 +7,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let fx_pairs  = vec![
         "EUR_USD", 
-        "USD_JPY", 
+        //"USD_JPY", 
         "GBP_USD", 
         "AUD_USD", 
-        "USD_CAD", 
-        "USD_CHF", 
-        "NZD_USD",
-        "GBP_AUD",
-        "GBP_NZD",
+        //"USD_CAD", 
+        //"USD_CHF", 
+        //"NZD_USD",
+        //"GBP_AUD",
+        //"GBP_NZD",
         "EUR_AUD",
-        "EUR_JPY",
-        "GBP_JPY",
-        "CAD_JPY"];
+        //"EUR_JPY",
+        //"GBP_JPY",
+        //"CAD_JPY"
+        ];
 
     let client = reqwest::Client::new();
   
@@ -38,9 +39,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "M")
     });
 
+    join_all(_fetch_h1_fx_data).await;
+
     println!("• Fetching COT data from: www.cftc.gov");
 
-    for year in 2016..=2026 {
+    for year in 2021..=2026 {
 
         ingestion::fetch_cot::fetch_cot_data(year).await?;
 
