@@ -100,3 +100,17 @@ pub async fn fetch_fx_price_data(
 
     Ok(())
 }
+
+
+
+#[derive(Debug, sqlx::FromRow, Deserialize)]
+pub struct FxPrice {
+    pub currency_pair: String,
+    pub price_date: NaiveDate,
+    pub complete: bool,
+    pub open_price: Decimal,
+    pub high_price: Decimal,
+    pub low_price: Decimal,
+    pub close_price: Decimal,
+    pub tick_volume: i32,
+}

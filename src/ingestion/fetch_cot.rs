@@ -11,16 +11,12 @@ use serde::Deserialize;
 use zip::ZipArchive;
 
 pub async fn fetch_cot_data(year: i32, db_pool: &PgPool) -> Result<String, Box<dyn Error>> {
-    let url = format!(
-        "https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip",
-        year
-    );
-    
-    let file_in_zip = get_zip_file(&url).await?;
+        
+    let bytes = fetch_cot_bytes(year.await?);
  
-    let data = parse_cot_records(file_in_zip)?;
+    let data = parse_cot_records(Cursor::new(bytes))?;
 
-    cot_db_ingest(&cot_data, db_pool);
+    cot_db_ingest(&data, db_pool);
 
     Ok(temp_path_str.to_string())
 }
@@ -122,19 +118,13 @@ pub struct CotTff {
     pub conc_net_le8_short: Option<Decimal>,*/
 }
 
-#[derive(Debug, sqlx::FromRow, Deserialize)]
-pub struct FxPrice {
-    pub currency_pair: String,
-    pub price_date: NaiveDate,
-    pub complete: bool,
-    pub open_price: Decimal,
-    pub high_price: Decimal,
-    pub low_price: Decimal,
-    pub close_price: Decimal,
-    pub tick_volume: i32,
-}
 
-pub async fn get_zip_file(url: &String) -> Result<ZipFile<file_in_zip>, anyhow::Error> {
+pub async fn fetch_cot_bytes(year: i32) -> Result<ZipFile<file_in_zip>, anyhow::Error> {
+    
+    let url = format!(
+        "https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip",
+        year
+    );
     let response_bytes  = reqwest::get(&url).await?.bytes().await?;
     let cursor  = io::Cursor::new(response_bytes);
     let mut archive = ZipArchive::new(cursor)?;
@@ -146,7 +136,7 @@ pub async fn get_zip_file(url: &String) -> Result<ZipFile<file_in_zip>, anyhow::
     Ok(file_in_zip)
 }
 
-async fn parse_cot_records<R: Read>(reader: R) -> Result<Vec<CotTff>>, anyhow::Error> {
+fn parse_cot_records<R: Read>(reader: R) -> Result<Vec<CotTff>, anyhow::Error> {
     csv::ReaderBuilder::new()
         .trim(csv::Trim::All)
         .from_reader(reader)
