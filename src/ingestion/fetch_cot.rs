@@ -15,21 +15,12 @@ pub async fn fetch_cot_data(year: i32, db_pool: &PgPool) -> Result<String, Box<d
         "https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip",
         year
     );
-
-    let response_bytes = reqwest::get(&url).await?.bytes().await?;
-    let cursor = io::Cursor::new(response_bytes);
-    let mut archive = ZipArchive::new(cursor)?;
-
-    let mut file_in_zip = archive
-        .by_index(0)
-        .map_err(|_| format!("Could not find 'FinFutWk.txt' in archive for year {}", year))?;
-
-    let data = parse_cot_records(file_in_zip)?;
     
-
+    let file_in_zip = get_zip_file(&url).await?;
+ 
+    let data = parse_cot_records(file_in_zip)?;
 
     cot_db_ingest(&cot_data, db_pool);
-
 
     Ok(temp_path_str.to_string())
 }
@@ -141,6 +132,18 @@ pub struct FxPrice {
     pub low_price: Decimal,
     pub close_price: Decimal,
     pub tick_volume: i32,
+}
+
+pub async fn get_zip_file(url: &String) -> Result<ZipFile<file_in_zip>, anyhow::Error> {
+    let response_bytes  = reqwest::get(&url).await?.bytes().await?;
+    let cursor  = io::Cursor::new(response_bytes);
+    let mut archive = ZipArchive::new(cursor)?;
+
+    let mut file_in_zip = archive
+        .by_index(0)
+        .map_err(|_| format!("Could not find 'FinFutWk.txt' in archive for year {}", year))?;
+    
+    Ok(file_in_zip)
 }
 
 async fn parse_cot_records<R: Read>(reader: R) -> Result<Vec<CotTff>>, anyhow::Error> {
