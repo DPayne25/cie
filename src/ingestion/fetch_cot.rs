@@ -7,6 +7,7 @@ use std::{
     io,
     path::Path,
 };
+use anyhow::Error;
 use serde::Deserialize;
 use zip::ZipArchive;
 
@@ -119,7 +120,7 @@ pub struct CotTff {
 }
 
 
-pub async fn fetch_cot_bytes(year: i32) -> Result<ZipFile<file_in_zip>, anyhow::Error> {
+pub async fn fetch_cot_bytes(year: i32) -> Result<ZipFile<'_,Cursor<Bytes>>, anyhow::Error> {
     
     let url = format!(
         "https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip",
@@ -141,7 +142,7 @@ fn parse_cot_records<R: Read>(reader: R) -> Result<Vec<CotTff>, anyhow::Error> {
         .trim(csv::Trim::All)
         .from_reader(reader)
 }
-
+/*
 pub async fn cot_db_ingest(data: &CotTff, pool: &PgPool) -> Result<(), Box<dyn Error>>{
     sqlx::query!(
         r#"INSERT INTO cot_tff (
@@ -187,3 +188,4 @@ pub async fn cot_db_ingest(data: &CotTff, pool: &PgPool) -> Result<(), Box<dyn E
 
     Ok(())
 }
+    */

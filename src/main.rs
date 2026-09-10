@@ -3,6 +3,10 @@ use futures::future::join_all;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    
+    let bytes = fetch_cot_bytes(2026).await?;
+    println!("{} bytes", bytes.len());
+    /*
     let fx_pairs = vec![
         "EUR_USD", //"USD_JPY",
         "GBP_USD", "AUD_USD", //"USD_CAD",
@@ -43,6 +47,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     println!("• Mission Complete: Ingestion Completed Successfully.");
-
+    */
     Ok(())
 }

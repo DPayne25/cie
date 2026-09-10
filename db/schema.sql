@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS cot_tff (
     other_rept_positions_long INTEGER NOT NULL,
     other_rept_positions_short INTEGER NOT NULL,
     other_rept_positions_spread INTEGER NOT NULL,
-    PRIMARY KEY (report_date, cftc_market_code)
+    PRIMARY KEY (report_date, cftc_contract_market_code)
 );
 
 CREATE TABLE IF NOT EXISTS fx_price (
