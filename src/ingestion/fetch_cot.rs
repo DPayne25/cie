@@ -26,47 +26,7 @@ pub async fn fetch_cot_data(year: i32, db_pool: &PgPool) -> Result<String, Box<d
 
     let cot_data: CotTff = ;//insert assignment;
 
-    sqlx::query!(
-        r#"INSERT INTO cot_tff (
-            market_exchange_names, 
-            report_date,
-            cftc_contract_market_code,
-            open_interest,
-            dealer_positions_long,
-            dealer_positions_short,
-            dealer_positions_spread,
-            asset_manager_positions_long,
-            asset_manager_positions_short,
-            asset_manager_positions_spread,
-            leveraged_money_positions_long,
-            leveraged_money_positions_short,
-            leveraged_money_positions_spread,
-            other_rept_positions_long,
-            other_rept_positions_short,
-            other_rept_positions_spread)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $12, $13, $14, $15, $16, $17, $18, $19);"#
-    )
-    .bind(cot_data.market_exchange_names)
-    .bind(cot_data.report_date)
-    .bind(cot_data.cftc_contract_market_code)
-    .bind(cot_data.open_interest)
-    .bind(cot_data.dealer_positions_long)
-    .bind(cot_data.dealer_positions_short)
-    .bind(cot_data.dealer_positions_spread)
-    .bind(cot_data.asset_manager_positions_long)
-    .bind(cot_data.asset_manager_positions_short)
-    .bind(cot_data.asset_manager_positions_spread)
-    .bind(cot_data.leveraged_money_positions_long)
-    .bind(cot_data.leveraged_money_positions_short)
-    .bind(cot_data.leveraged_money_positions_spread)
-    .bind(cot_data.other_rept_positions_long)
-    .bind(cot_data.other_rept_positions_short)
-    .bind(cot_data.other_rept_positions_spread)
-    .bind(cot_data.market_exchange_names)
-    .bind(cot_data.market_exchange_names)
-    .bind(cot_data.market_exchange_names)
-    .execute(db_pool)
-    .await?;
+    cot_db_ingest(cot_data, db_pool);
 
 
     Ok(temp_path_str.to_string())
@@ -116,4 +76,51 @@ pub struct FxPrice {
     pub low_price: Decimal,
     pub close_price: Decimal,
     pub tick_volume: i32,
+}
+
+
+pub async fn cot_db_ingest(data: CotTff, pool: &PgPool) -> Result<(), Box<dyn Error>>{
+    sqlx::query!(
+        r#"INSERT INTO cot_tff (
+            market_exchange_names, 
+            report_date,
+            cftc_contract_market_code,
+            open_interest,
+            dealer_positions_long,
+            dealer_positions_short,
+            dealer_positions_spread,
+            asset_manager_positions_long,
+            asset_manager_positions_short,
+            asset_manager_positions_spread,
+            leveraged_money_positions_long,
+            leveraged_money_positions_short,
+            leveraged_money_positions_spread,
+            other_rept_positions_long,
+            other_rept_positions_short,
+            other_rept_positions_spread)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $12, $13, $14, $15, $16, $17, $18, $19);"#
+    )
+    .bind(data.market_exchange_names)
+    .bind(data.report_date)
+    .bind(data.cftc_contract_market_code)
+    .bind(data.open_interest)
+    .bind(data.dealer_positions_long)
+    .bind(data.dealer_positions_short)
+    .bind(data.dealer_positions_spread)
+    .bind(data.asset_manager_positions_long)
+    .bind(data.asset_manager_positions_short)
+    .bind(data.asset_manager_positions_spread)
+    .bind(data.leveraged_money_positions_long)
+    .bind(data.leveraged_money_positions_short)
+    .bind(data.leveraged_money_positions_spread)
+    .bind(data.other_rept_positions_long)
+    .bind(data.other_rept_positions_short)
+    .bind(data.other_rept_positions_spread)
+    .bind(data.market_exchange_names)
+    .bind(data.market_exchange_names)
+    .bind(data.market_exchange_names)
+    .execute(pool)
+    .await?;
+
+    Ok(())
 }
