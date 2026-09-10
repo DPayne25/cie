@@ -1,7 +1,7 @@
 CREATE TYPE currency_base_type AS ENUM ('Direct', 'Inverted');
 
 CREATE TABLE IF NOT EXISTS dim_currency (
-    cftc_contract_code VARCHAR(10) PRIMARY KEY,
+    cftc_contract_market_code VARCHAR(10) PRIMARY KEY,
     currency_pair VARCHAR(10) UNIQUE NOT NULL,
     base_type currency_base_type NOT NULL
 );
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS dim_currency (
 CREATE TABLE IF NOT EXISTS cot_tff (
     market_exchange_names VARCHAR(255) NOT NULL,
     report_date DATE NOT NULL,
-    cftc_market_code VARCHAR(10) NOT NULL REFERENCES dim_currency(cftc_contract_code),
+    cftc_contract_market_code VARCHAR(10) NOT NULL REFERENCES dim_currency(cftc_contract_code),
     open_interest INTEGER NOT NULL,
     dealer_positions_long INTEGER NOT NULL,
     dealer_positions_short INTEGER NOT NULL,
