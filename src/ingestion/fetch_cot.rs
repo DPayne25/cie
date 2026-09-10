@@ -24,9 +24,11 @@ pub async fn fetch_cot_data(year: i32, db_pool: &PgPool) -> Result<String, Box<d
         .by_index(0)
         .map_err(|_| format!("Could not find 'FinFutWk.txt' in archive for year {}", year))?;
 
-    let cot_data: CotTff = ;//insert assignment;
+    let data = parse_cot_records(file_in_zip)?;
+    
 
-    cot_db_ingest(cot_data, db_pool);
+
+    cot_db_ingest(&cot_data, db_pool);
 
 
     Ok(temp_path_str.to_string())
@@ -48,22 +50,85 @@ pub struct DimCurrency {
 
 #[derive(Debug, sqlx::FromRow, Deserialize)]
 pub struct CotTff {
+    #[serde(rename = "Market_and_Exchange_Names")]
     pub market_exchange_names: String,
+    #[serde(rename = "Report_Date_as_YYYY-MM-DD")]
     pub report_date: NaiveDate,
+    #[serde(rename = "CFTC_Contract_Market_Code")]
     pub cftc_contract_market_code: String,
+    #[serde(rename = "Open_Interest_All")]
     pub open_interest: i32,
+    #[serde(rename = "Dealer_Positions_Long_All")]
     pub dealer_positions_long: i32,
+    #[serde(rename = "Dealer_Positions_Short_All")]
     pub dealer_positions_short: i32,
+    #[serde(rename = "Dealer_Positions_Spread_All")]
     pub dealer_positions_spread: i32,
+    #[serde(rename = "Asset_Mgr_Positions_Long_All")]
     pub asset_manager_positions_long: i32,
+    #[serde(rename = "Asset_Mgr_Positions_Short_All")]
     pub asset_manager_positions_short: i32,
+    #[serde(rename = "Asset_Mgr_Positions_Spread_All")]
     pub asset_manager_positions_spread: i32,
+    #[serde(rename = "Lev_Money_Positions_Long_All")]
     pub leveraged_money_positions_long: i32,
+    #[serde(rename = "Lev_Money_Positions_Short_All")]
     pub leveraged_money_positions_short: i32,
+    #[serde(rename = "Lev_Money_Positions_Spread_All")]
     pub leveraged_money_positions_spread: i32,
+    #[serde(rename = "Other_Rept_Positions_Long_All")]
     pub other_rept_positions_long: i32,
+    #[serde(rename = "Other_Rept_Positions_Short_All")]
     pub other_rept_positions_short: i32,
+    #[serde(rename = "Other_Rept_Positions_Spread_All")]
     pub other_rept_positions_spread: i32,
+    /*
+    #[serde(rename = "Traders_Tot_All")]
+    pub traders_total: Option<i32>,
+    #[serde(rename = "Traders_Dealer_Long_All")]
+    pub traders_dealer_long: Option<i32>,
+    #[serde(rename = "Traders_Dealer_Short_All")]
+    pub traders_dealer_short: Option<i32>,
+    #[serde(rename = "Traders_Dealer_Spread_All")]
+    pub traders_dealer_spread: Option<i32>,
+    #[serde(rename = "Traders_Asset_Mgr_Long_All")]
+    pub traders_asset_manager_long: Option<i32>,
+    #[serde(rename = "Traders_Asset_Mgr_Short_All")]
+    pub traders_asset_manager_short: Option<i32>,
+    #[serde(rename = "Traders_Asset_Mgr_Spread_All")]
+    pub traders_asset_manager_spread: Option<i32>,
+    #[serde(rename = "Traders_Lev_Money_Long_All")]
+    pub traders_leveraged_money_long: Option<i32>,
+    #[serde(rename = "Traders_Lev_Money_Short_All")]
+    pub traders_leveraged_money_short: Option<i32>,
+    #[serde(rename = "Traders_Lev_Money_Spread_All")]
+    pub traders_leveraged_money_spread: Option<i32>,
+    #[serde(rename = "Traders_Other_Rept_Long_All")]
+    pub traders_other_rept_long: Option<i32>,
+    #[serde(rename = "Traders_Other_Rept_Short_All")]
+    pub traders_other_rept_short: Option<i32>,
+    #[serde(rename = "Traders_Other_Rept_Spread_All")]
+    pub traders_other_rept_spread: Option<i32>,
+    #[serde(rename = "Traders_Tot_Rept_Long_All")]
+    pub traders_tot_rept_long: Option<i32>,
+    #[serde(rename = "Traders_Tot_Rept_Short_All")]
+    pub traders_tot_rept_short: Option<i32>,
+    #[serde(rename = "Conc_Gross_LE_4_TDR_Long_All")]
+    pub conc_gross_le4_long: Option<Decimal>,
+    #[serde(rename = "Conc_Gross_LE_4_TDR_Short_All")]
+    pub conc_gross_le4_short: Option<Decimal>,
+    #[serde(rename = "Conc_Gross_LE_8_TDR_Long_All")]
+    pub conc_gross_le8_long: Option<Decimal>,
+    #[serde(rename = "Conc_Gross_LE_8_TDR_Short_All")]
+    pub conc_gross_le8_short: Option<Decimal>,
+    #[serde(rename = "Conc_Net_LE_4_TDR_Long_All")]
+    pub conc_net_le4_long: Option<Decimal>,
+    #[serde(rename = "Conc_Net_LE_4_TDR_Short_All")]
+    pub conc_net_le4_short: Option<Decimal>,
+    #[serde(rename = "Conc_Net_LE_8_TDR_Long_All")]
+    pub conc_net_le8_long: Option<Decimal>,
+    #[serde(rename = "Conc_Net_LE_8_TDR_Short_All")]
+    pub conc_net_le8_short: Option<Decimal>,*/
 }
 
 #[derive(Debug, sqlx::FromRow, Deserialize)]
@@ -78,8 +143,13 @@ pub struct FxPrice {
     pub tick_volume: i32,
 }
 
+async fn parse_cot_records<R: Read>(reader: R) -> Result<Vec<CotTff>>, anyhow::Error> {
+    csv::ReaderBuilder::new()
+        .trim(csv::Trim::All)
+        .from_reader(reader)
+}
 
-pub async fn cot_db_ingest(data: CotTff, pool: &PgPool) -> Result<(), Box<dyn Error>>{
+pub async fn cot_db_ingest(data: &CotTff, pool: &PgPool) -> Result<(), Box<dyn Error>>{
     sqlx::query!(
         r#"INSERT INTO cot_tff (
             market_exchange_names, 
