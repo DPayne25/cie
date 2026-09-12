@@ -1,32 +1,217 @@
-use std::{fs::{self, File}, error::Error, path::Path, io};
+use chrono::{self, NaiveDate};
+use rust_decimal::Decimal;
+use sqlx::{PgPool, Type};
+use std::{
+    fs::{self, File},
+    io::{Read,Cursor,Bytes},
+    path::Path,
+};
+use anyhow::{Error, Context};
+use serde::Deserialize;
 use zip::ZipArchive;
+use std::collections::HashSet;
 
-
-
-pub async fn fetch_cot_data(year: i64) -> Result<String, Box<dyn Error>> {
+pub async fn fetch_cot_data(year: &i32, db_pool: &PgPool) -> Result<(), Error> {
+        
+    let bytes = fetch_cot_bytes(year).await?;
+ 
+    let vec_data = parse_cot_records(&bytes)?;
     
-    let url = format!("https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip", year);
+    cot_db_ingest(&vec_data, db_pool).await?;
 
-    println!("• Fetching COT data from: {}", url);
+    Ok(())
+}
 
-    let response_bytes = reqwest::get(&url).await?.bytes().await?;
-    let cursor = io::Cursor::new(response_bytes);
+#[derive(Debug, Clone, Type, Deserialize)]
+#[sqlx(type_name = "currency_base_type")] // Must match the exact PostgreSQL type name
+pub enum CurrencyBaseType {
+    Direct,
+    Inverted,
+}
+
+#[derive(Debug, sqlx::FromRow, Deserialize)]
+pub struct DimCurrency {
+    pub cftc_contract_market_code: String,
+    pub currency_pair: String,
+    pub base_type: CurrencyBaseType,
+}
+
+#[derive(Debug, sqlx::FromRow, Deserialize)]
+pub struct CotTff {
+    #[serde(rename = "Market_and_Exchange_Names")]
+    pub market_exchange_names: String,
+    #[serde(rename = "Report_Date_as_YYYY-MM-DD")]
+    pub report_date: NaiveDate,
+    #[serde(rename = "CFTC_Contract_Market_Code")]
+    pub cftc_contract_market_code: String,
+    #[serde(rename = "Open_Interest_All")]
+    pub open_interest: i32,
+    #[serde(rename = "Dealer_Positions_Long_All")]
+    pub dealer_positions_long: i32,
+    #[serde(rename = "Dealer_Positions_Short_All")]
+    pub dealer_positions_short: i32,
+    #[serde(rename = "Dealer_Positions_Spread_All")]
+    pub dealer_positions_spread: i32,
+    #[serde(rename = "Asset_Mgr_Positions_Long_All")]
+    pub asset_manager_positions_long: i32,
+    #[serde(rename = "Asset_Mgr_Positions_Short_All")]
+    pub asset_manager_positions_short: i32,
+    #[serde(rename = "Asset_Mgr_Positions_Spread_All")]
+    pub asset_manager_positions_spread: i32,
+    #[serde(rename = "Lev_Money_Positions_Long_All")]
+    pub leveraged_money_positions_long: i32,
+    #[serde(rename = "Lev_Money_Positions_Short_All")]
+    pub leveraged_money_positions_short: i32,
+    #[serde(rename = "Lev_Money_Positions_Spread_All")]
+    pub leveraged_money_positions_spread: i32,
+    #[serde(rename = "Other_Rept_Positions_Long_All")]
+    pub other_rept_positions_long: i32,
+    #[serde(rename = "Other_Rept_Positions_Short_All")]
+    pub other_rept_positions_short: i32,
+    #[serde(rename = "Other_Rept_Positions_Spread_All")]
+    pub other_rept_positions_spread: i32,
+    /*
+    #[serde(rename = "Traders_Tot_All")]
+    pub traders_total: Option<i32>,
+    #[serde(rename = "Traders_Dealer_Long_All")]
+    pub traders_dealer_long: Option<i32>,
+    #[serde(rename = "Traders_Dealer_Short_All")]
+    pub traders_dealer_short: Option<i32>,
+    #[serde(rename = "Traders_Dealer_Spread_All")]
+    pub traders_dealer_spread: Option<i32>,
+    #[serde(rename = "Traders_Asset_Mgr_Long_All")]
+    pub traders_asset_manager_long: Option<i32>,
+    #[serde(rename = "Traders_Asset_Mgr_Short_All")]
+    pub traders_asset_manager_short: Option<i32>,
+    #[serde(rename = "Traders_Asset_Mgr_Spread_All")]
+    pub traders_asset_manager_spread: Option<i32>,
+    #[serde(rename = "Traders_Lev_Money_Long_All")]
+    pub traders_leveraged_money_long: Option<i32>,
+    #[serde(rename = "Traders_Lev_Money_Short_All")]
+    pub traders_leveraged_money_short: Option<i32>,
+    #[serde(rename = "Traders_Lev_Money_Spread_All")]
+    pub traders_leveraged_money_spread: Option<i32>,
+    #[serde(rename = "Traders_Other_Rept_Long_All")]
+    pub traders_other_rept_long: Option<i32>,
+    #[serde(rename = "Traders_Other_Rept_Short_All")]
+    pub traders_other_rept_short: Option<i32>,
+    #[serde(rename = "Traders_Other_Rept_Spread_All")]
+    pub traders_other_rept_spread: Option<i32>,
+    #[serde(rename = "Traders_Tot_Rept_Long_All")]
+    pub traders_tot_rept_long: Option<i32>,
+    #[serde(rename = "Traders_Tot_Rept_Short_All")]
+    pub traders_tot_rept_short: Option<i32>,
+    #[serde(rename = "Conc_Gross_LE_4_TDR_Long_All")]
+    pub conc_gross_le4_long: Option<Decimal>,
+    #[serde(rename = "Conc_Gross_LE_4_TDR_Short_All")]
+    pub conc_gross_le4_short: Option<Decimal>,
+    #[serde(rename = "Conc_Gross_LE_8_TDR_Long_All")]
+    pub conc_gross_le8_long: Option<Decimal>,
+    #[serde(rename = "Conc_Gross_LE_8_TDR_Short_All")]
+    pub conc_gross_le8_short: Option<Decimal>,
+    #[serde(rename = "Conc_Net_LE_4_TDR_Long_All")]
+    pub conc_net_le4_long: Option<Decimal>,
+    #[serde(rename = "Conc_Net_LE_4_TDR_Short_All")]
+    pub conc_net_le4_short: Option<Decimal>,
+    #[serde(rename = "Conc_Net_LE_8_TDR_Long_All")]
+    pub conc_net_le8_long: Option<Decimal>,
+    #[serde(rename = "Conc_Net_LE_8_TDR_Short_All")]
+    pub conc_net_le8_short: Option<Decimal>,*/
+}
+
+
+pub async fn fetch_cot_bytes(year: &i32) -> Result<Vec<u8>, anyhow::Error> {
+    
+    let url = format!(
+        "https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip",
+        year
+    );
+    let response_bytes  = reqwest::get(&url).await?.bytes().await?;
+    let cursor  = Cursor::new(response_bytes);
     let mut archive = ZipArchive::new(cursor)?;
 
-    let mut file_in_zip = archive.by_index(0)
-        .map_err(|_| format!("Could not find 'FinFutWk.txt' in archive for year {}", year))?;
+    let mut file_in_zip = archive
+        .by_index(0)
+        .context(format!("Could not find 'FinFutWk.txt' in archive for year {}", year))?;
+    
+    let mut data = Vec::new();
 
-    let out_dir = Path::new("data/raw/cot");
-    fs::create_dir_all(out_dir)?;
+    file_in_zip.read_to_end(&mut data)?;
 
-    let temp_path_str = "data/raw/cot/date-RawCOTReport.csv";
-    let out_path = Path::new(temp_path_str);
-    let mut outfile = File::create(&out_path)?;
+    Ok(data)
+}
 
-    io::copy(&mut file_in_zip, &mut outfile)?;
+pub fn parse_cot_records(bytes: &[u8]) -> Result<Vec<CotTff>, anyhow::Error> {
+    let rows = csv::ReaderBuilder::new()
+        .trim(csv::Trim::All)
+        .from_reader(bytes)
+        .deserialize::<CotTff>()
+        .collect::<Result<Vec<_>, _>>()?;
 
-    println!("• Successfully extracted and saved raw COT data to: {:?}", out_path);
+    Ok(rows)
+}
 
-    Ok(temp_path_str.to_string())
-} 
+pub async fn cot_db_ingest(data: &[CotTff], pool: &PgPool) -> Result<(), Error>{
+    let mut seen = std::collections::BTreeMap::new();
+    
+    for row in data {
+        seen.insert(&row.cftc_contract_market_code, &row.market_exchange_names);
+    }
+    let known: HashSet<String> = sqlx::query_scalar!("SELECT cftc_contract_market_code FROM dim_currency")
+    .fetch_all(pool).await?.into_iter().collect();
+    
+    let mut tx = pool.begin().await?;
 
+    for row in data {
+        if !known.contains(&row.cftc_contract_market_code) { continue; }
+
+        let as_of = row.report_date + chrono::Duration::days(3);
+
+        sqlx::query!(
+            r#"INSERT INTO cot_tff (
+                market_exchange_names, 
+                report_date,
+                cftc_contract_market_code,
+                open_interest,
+                dealer_positions_long,
+                dealer_positions_short,
+                dealer_positions_spread,
+                asset_manager_positions_long,
+                asset_manager_positions_short,
+                asset_manager_positions_spread,
+                leveraged_money_positions_long,
+                leveraged_money_positions_short,
+                leveraged_money_positions_spread,
+                other_rept_positions_long,
+                other_rept_positions_short,
+                other_rept_positions_spread,
+                as_of
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+            ON CONFLICT (cftc_contract_market_code, report_date) DO NOTHING;
+            "#,
+            row.market_exchange_names,
+            row.report_date,
+            row.cftc_contract_market_code,
+            row.open_interest,
+            row.dealer_positions_long,
+            row.dealer_positions_short,
+            row.dealer_positions_spread,
+            row.asset_manager_positions_long,
+            row.asset_manager_positions_short,
+            row.asset_manager_positions_spread,
+            row.leveraged_money_positions_long,
+            row.leveraged_money_positions_short,
+            row.leveraged_money_positions_spread,
+            row.other_rept_positions_long,
+            row.other_rept_positions_short,
+            row.other_rept_positions_spread,
+            as_of
+        )
+            .execute(&mut *tx)
+            .await?;
+    }
+    tx.commit().await?;
+
+    Ok(())
+}
