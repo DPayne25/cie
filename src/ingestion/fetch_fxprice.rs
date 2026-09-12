@@ -1,4 +1,4 @@
-use chrono::{DateTime, Duration, TimeZone, Utc};
+/*use chrono::{DateTime, Duration, TimeZone, Utc};
 use dotenvy::dotenv;
 use fxoanda;
 use reqwest;
@@ -114,3 +114,4 @@ pub struct FxPrice {
     pub close_price: Decimal,
     pub tick_volume: i32,
 }
+    */

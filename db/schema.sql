@@ -23,8 +23,14 @@ CREATE TABLE IF NOT EXISTS cot_tff (
     other_rept_positions_long INTEGER NOT NULL,
     other_rept_positions_short INTEGER NOT NULL,
     other_rept_positions_spread INTEGER NOT NULL,
+    as_of DATE NOT NULL,
     PRIMARY KEY (report_date, cftc_contract_market_code)
 );
+
+COMMENT ON COLUMN cot_tff.as_of IS
+  'CFTC publication date. Derived as report_date + 3 days (Tue report, Fri 3:30pm EST release). Federal holidays can delay actual release.';
+
+-- UPDATE cot_tff SET as_of = report_date + INTERVAL '3 days' WHERE as_of IS NULL;
 
 CREATE TABLE IF NOT EXISTS fx_price (
     currency_pair VARCHAR(10) NOT NULL REFERENCES dim_currency(currency_pair),
@@ -37,3 +43,18 @@ CREATE TABLE IF NOT EXISTS fx_price (
     tick_volume INTEGER NOT NULL,
     PRIMARY KEY (price_date, currency_pair)
 );
+
+SELECT * FROM cot_tff;
+
+SELECT * FROM dim_currency;
+
+INSERT INTO dim_currency (cftc_contract_market_code, currency_pair, base_type) VALUES
+  ('099741', 'EURUSD', 'Direct'),
+  ('096742', 'GBPUSD', 'Direct'),
+  ('232741', 'AUDUSD', 'Direct'),
+  ('112741', 'NZDUSD', 'Direct'),
+  ('097741', 'USDJPY', 'Inverted'),
+  ('090741', 'USDCAD', 'Inverted'),
+  ('092741', 'USDCHF', 'Inverted'),
+  ('399741', 'EURJPY', 'Direct')
+ON CONFLICT (cftc_contract_market_code) DO NOTHING;

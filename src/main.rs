@@ -1,11 +1,18 @@
 mod ingestion;
 use futures::future::join_all;
+use dotenvy::dotenv;
+use std::{env, fs};
+use sqlx::PgPool;
+use anyhow::{Error, Context};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), Error> {
+    dotenvy::dotenv().ok();
+    let db_url = env::var("DATABASE_URL").context("DATABASE_URL not set in .env")?;
+    let db_pool = PgPool::connect(&db_url).await?;
+
+    ingestion::fetch_cot::fetch_cot_data(&2026, &db_pool).await?;
     
-    let bytes = fetch_cot_bytes(2026).await?;
-    println!("{} bytes", bytes.len());
     /*
     let fx_pairs = vec![
         "EUR_USD", //"USD_JPY",

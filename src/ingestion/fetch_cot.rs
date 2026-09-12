@@ -1,25 +1,25 @@
 use chrono::{self, NaiveDate};
 use rust_decimal::Decimal;
-use sqlx::{PgPool, Type, pool};
+use sqlx::{PgPool, Type};
 use std::{
-    error::Error,
     fs::{self, File},
-    io,
+    io::{Read,Cursor,Bytes},
     path::Path,
 };
-use anyhow::Error;
+use anyhow::{Error, Context};
 use serde::Deserialize;
 use zip::ZipArchive;
+use std::collections::HashSet;
 
-pub async fn fetch_cot_data(year: i32, db_pool: &PgPool) -> Result<String, Box<dyn Error>> {
+pub async fn fetch_cot_data(year: &i32, db_pool: &PgPool) -> Result<(), Error> {
         
-    let bytes = fetch_cot_bytes(year.await?);
+    let bytes = fetch_cot_bytes(year).await?;
  
-    let data = parse_cot_records(Cursor::new(bytes))?;
+    let vec_data = parse_cot_records(&bytes)?;
+    
+    cot_db_ingest(&vec_data, db_pool).await?;
 
-    cot_db_ingest(&data, db_pool);
-
-    Ok(temp_path_str.to_string())
+    Ok(())
 }
 
 #[derive(Debug, Clone, Type, Deserialize)]
@@ -120,72 +120,98 @@ pub struct CotTff {
 }
 
 
-pub async fn fetch_cot_bytes(year: i32) -> Result<ZipFile<'_,Cursor<Bytes>>, anyhow::Error> {
+pub async fn fetch_cot_bytes(year: &i32) -> Result<Vec<u8>, anyhow::Error> {
     
     let url = format!(
         "https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip",
         year
     );
     let response_bytes  = reqwest::get(&url).await?.bytes().await?;
-    let cursor  = io::Cursor::new(response_bytes);
+    let cursor  = Cursor::new(response_bytes);
     let mut archive = ZipArchive::new(cursor)?;
 
     let mut file_in_zip = archive
         .by_index(0)
-        .map_err(|_| format!("Could not find 'FinFutWk.txt' in archive for year {}", year))?;
+        .context(format!("Could not find 'FinFutWk.txt' in archive for year {}", year))?;
     
-    Ok(file_in_zip)
+    let mut data = Vec::new();
+
+    file_in_zip.read_to_end(&mut data)?;
+
+    Ok(data)
 }
 
-fn parse_cot_records<R: Read>(reader: R) -> Result<Vec<CotTff>, anyhow::Error> {
-    csv::ReaderBuilder::new()
+pub fn parse_cot_records(bytes: &[u8]) -> Result<Vec<CotTff>, anyhow::Error> {
+    let rows = csv::ReaderBuilder::new()
         .trim(csv::Trim::All)
-        .from_reader(reader)
+        .from_reader(bytes)
+        .deserialize::<CotTff>()
+        .collect::<Result<Vec<_>, _>>()?;
+
+    Ok(rows)
 }
-/*
-pub async fn cot_db_ingest(data: &CotTff, pool: &PgPool) -> Result<(), Box<dyn Error>>{
-    sqlx::query!(
-        r#"INSERT INTO cot_tff (
-            market_exchange_names, 
-            report_date,
-            cftc_contract_market_code,
-            open_interest,
-            dealer_positions_long,
-            dealer_positions_short,
-            dealer_positions_spread,
-            asset_manager_positions_long,
-            asset_manager_positions_short,
-            asset_manager_positions_spread,
-            leveraged_money_positions_long,
-            leveraged_money_positions_short,
-            leveraged_money_positions_spread,
-            other_rept_positions_long,
-            other_rept_positions_short,
-            other_rept_positions_spread)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $12, $13, $14, $15, $16, $17, $18, $19);"#
-    )
-    .bind(data.market_exchange_names)
-    .bind(data.report_date)
-    .bind(data.cftc_contract_market_code)
-    .bind(data.open_interest)
-    .bind(data.dealer_positions_long)
-    .bind(data.dealer_positions_short)
-    .bind(data.dealer_positions_spread)
-    .bind(data.asset_manager_positions_long)
-    .bind(data.asset_manager_positions_short)
-    .bind(data.asset_manager_positions_spread)
-    .bind(data.leveraged_money_positions_long)
-    .bind(data.leveraged_money_positions_short)
-    .bind(data.leveraged_money_positions_spread)
-    .bind(data.other_rept_positions_long)
-    .bind(data.other_rept_positions_short)
-    .bind(data.other_rept_positions_spread)
-    .bind(data.market_exchange_names)
-    .bind(data.market_exchange_names)
-    .bind(data.market_exchange_names)
-    .execute(pool)
-    .await?;
+
+pub async fn cot_db_ingest(data: &[CotTff], pool: &PgPool) -> Result<(), Error>{
+    let mut seen = std::collections::BTreeMap::new();
+    
+    for row in data {
+        seen.insert(&row.cftc_contract_market_code, &row.market_exchange_names);
+    }
+    let known: HashSet<String> = sqlx::query_scalar!("SELECT cftc_contract_market_code FROM dim_currency")
+    .fetch_all(pool).await?.into_iter().collect();
+    
+    let mut tx = pool.begin().await?;
+
+    for row in data {
+        if !known.contains(&row.cftc_contract_market_code) { continue; }
+
+        let as_of = row.report_date + chrono::Duration::days(3);
+
+        sqlx::query!(
+            r#"INSERT INTO cot_tff (
+                market_exchange_names, 
+                report_date,
+                cftc_contract_market_code,
+                open_interest,
+                dealer_positions_long,
+                dealer_positions_short,
+                dealer_positions_spread,
+                asset_manager_positions_long,
+                asset_manager_positions_short,
+                asset_manager_positions_spread,
+                leveraged_money_positions_long,
+                leveraged_money_positions_short,
+                leveraged_money_positions_spread,
+                other_rept_positions_long,
+                other_rept_positions_short,
+                other_rept_positions_spread,
+                as_of
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+            ON CONFLICT (cftc_contract_market_code, report_date) DO NOTHING;
+            "#,
+            row.market_exchange_names,
+            row.report_date,
+            row.cftc_contract_market_code,
+            row.open_interest,
+            row.dealer_positions_long,
+            row.dealer_positions_short,
+            row.dealer_positions_spread,
+            row.asset_manager_positions_long,
+            row.asset_manager_positions_short,
+            row.asset_manager_positions_spread,
+            row.leveraged_money_positions_long,
+            row.leveraged_money_positions_short,
+            row.leveraged_money_positions_spread,
+            row.other_rept_positions_long,
+            row.other_rept_positions_short,
+            row.other_rept_positions_spread,
+            as_of
+        )
+            .execute(&mut *tx)
+            .await?;
+    }
+    tx.commit().await?;
 
     Ok(())
 }
-    */
