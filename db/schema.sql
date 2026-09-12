@@ -1,4 +1,10 @@
-CREATE TYPE currency_base_type AS ENUM ('Direct', 'Inverted');
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'currency_base_type') THEN
+        CREATE TYPE currency_base_type AS ENUM ('Direct', 'Inverted');
+    END IF;
+END
+$$;
 
 CREATE TABLE IF NOT EXISTS dim_currency (
     cftc_contract_market_code VARCHAR(10) PRIMARY KEY,
@@ -9,7 +15,7 @@ CREATE TABLE IF NOT EXISTS dim_currency (
 CREATE TABLE IF NOT EXISTS cot_tff (
     market_exchange_names VARCHAR(255) NOT NULL,
     report_date DATE NOT NULL,
-    cftc_contract_market_code VARCHAR(10) NOT NULL REFERENCES dim_currency(cftc_contract_code),
+    cftc_contract_market_code VARCHAR(10) NOT NULL REFERENCES dim_currency(cftc_contract_market_code),
     open_interest INTEGER NOT NULL,
     dealer_positions_long INTEGER NOT NULL,
     dealer_positions_short INTEGER NOT NULL,
@@ -32,8 +38,8 @@ COMMENT ON COLUMN cot_tff.as_of IS
 
 -- UPDATE cot_tff SET as_of = report_date + INTERVAL '3 days' WHERE as_of IS NULL;
 
-CREATE TABLE IF NOT EXISTS fx_price (
-    currency_pair VARCHAR(10) NOT NULL REFERENCES dim_currency(currency_pair),
+CREATE TABLE IF NOT EXISTS fx_price_daily (
+    currency_pair VARCHAR(10) NOT NULL,
     price_date DATE NOT NULL,
     complete BOOLEAN NOT NULL,
     open_price NUMERIC(10,5) NOT NULL,
@@ -44,9 +50,17 @@ CREATE TABLE IF NOT EXISTS fx_price (
     PRIMARY KEY (price_date, currency_pair)
 );
 
-SELECT * FROM cot_tff;
-
-SELECT * FROM dim_currency;
+CREATE TABLE IF NOT EXISTS fx_price_h1 (
+    currency_pair VARCHAR(10) NOT NULL,
+    price_date TIMESTAMPTZ NOT NULL,
+    complete BOOLEAN NOT NULL,
+    open_price NUMERIC(10,5) NOT NULL,
+    high_price NUMERIC(10,5) NOT NULL,
+    low_price NUMERIC(10,5) NOT NULL,
+    close_price NUMERIC(10,5) NOT NULL,
+    tick_volume INTEGER NOT NULL,
+    PRIMARY KEY (price_date, currency_pair)
+);
 
 INSERT INTO dim_currency (cftc_contract_market_code, currency_pair, base_type) VALUES
   ('099741', 'EURUSD', 'Direct'),
@@ -58,3 +72,5 @@ INSERT INTO dim_currency (cftc_contract_market_code, currency_pair, base_type) V
   ('092741', 'USDCHF', 'Inverted'),
   ('399741', 'EURJPY', 'Direct')
 ON CONFLICT (cftc_contract_market_code) DO NOTHING;
+
+SELECT * FROM fx_price_daily;
