@@ -1,22 +1,21 @@
+use anyhow::{Context, Error};
 use chrono::{self, NaiveDate};
 use rust_decimal::Decimal;
+use serde::Deserialize;
 use sqlx::{PgPool, Type};
+use std::collections::HashSet;
 use std::{
     fs::{self, File},
-    io::{Read,Cursor,Bytes},
+    io::{Bytes, Cursor, Read},
     path::Path,
 };
-use anyhow::{Error, Context};
-use serde::Deserialize;
 use zip::ZipArchive;
-use std::collections::HashSet;
 
 pub async fn fetch_cot_data(year: &i32, db_pool: &PgPool) -> Result<(), Error> {
-        
     let bytes = fetch_cot_bytes(year).await?;
- 
+
     let vec_data = parse_cot_records(&bytes)?;
-    
+
     cot_db_ingest(&vec_data, db_pool).await?;
 
     Ok(())
@@ -119,21 +118,20 @@ pub struct CotTff {
     pub conc_net_le8_short: Option<Decimal>,*/
 }
 
-
 pub async fn fetch_cot_bytes(year: &i32) -> Result<Vec<u8>, anyhow::Error> {
-    
     let url = format!(
         "https://www.cftc.gov/files/dea/history/fut_fin_txt_{}.zip",
         year
     );
-    let response_bytes  = reqwest::get(&url).await?.bytes().await?;
-    let cursor  = Cursor::new(response_bytes);
+    let response_bytes = reqwest::get(&url).await?.bytes().await?;
+    let cursor = Cursor::new(response_bytes);
     let mut archive = ZipArchive::new(cursor)?;
 
-    let mut file_in_zip = archive
-        .by_index(0)
-        .context(format!("Could not find 'FinFutWk.txt' in archive for year {}", year))?;
-    
+    let mut file_in_zip = archive.by_index(0).context(format!(
+        "Could not find 'FinFutWk.txt' in archive for year {}",
+        year
+    ))?;
+
     let mut data = Vec::new();
 
     file_in_zip.read_to_end(&mut data)?;
@@ -151,19 +149,25 @@ pub fn parse_cot_records(bytes: &[u8]) -> Result<Vec<CotTff>, anyhow::Error> {
     Ok(rows)
 }
 
-pub async fn cot_db_ingest(data: &[CotTff], pool: &PgPool) -> Result<(), Error>{
+pub async fn cot_db_ingest(data: &[CotTff], pool: &PgPool) -> Result<(), Error> {
     let mut seen = std::collections::BTreeMap::new();
-    
+
     for row in data {
         seen.insert(&row.cftc_contract_market_code, &row.market_exchange_names);
     }
-    let known: HashSet<String> = sqlx::query_scalar!("SELECT cftc_contract_market_code FROM dim_currency")
-    .fetch_all(pool).await?.into_iter().collect();
-    
+    let known: HashSet<String> =
+        sqlx::query_scalar!("SELECT cftc_contract_market_code FROM dim_currency")
+            .fetch_all(pool)
+            .await?
+            .into_iter()
+            .collect();
+
     let mut tx = pool.begin().await?;
 
     for row in data {
-        if !known.contains(&row.cftc_contract_market_code) { continue; }
+        if !known.contains(&row.cftc_contract_market_code) {
+            continue;
+        }
 
         let as_of = row.report_date + chrono::Duration::days(3);
 
@@ -208,8 +212,8 @@ pub async fn cot_db_ingest(data: &[CotTff], pool: &PgPool) -> Result<(), Error>{
             row.other_rept_positions_spread,
             as_of
         )
-            .execute(&mut *tx)
-            .await?;
+        .execute(&mut *tx)
+        .await?;
     }
     tx.commit().await?;
 

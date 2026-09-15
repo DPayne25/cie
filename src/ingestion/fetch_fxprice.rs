@@ -1,11 +1,11 @@
-use chrono::{Duration, TimeZone, Utc, NaiveDate};
+use anyhow::{Context, Result};
+use chrono::{Duration, NaiveDate, TimeZone, Utc};
 use fxoanda;
 use reqwest;
 use sqlx::PgPool;
 use sqlx::types::BigDecimal;
 use std::time::Duration as StdDuration;
 use tokio::time::sleep;
-use anyhow::{Context, Result};
 
 pub async fn fetch_fx_price_data(
     client: &reqwest::Client,
@@ -14,7 +14,6 @@ pub async fn fetch_fx_price_data(
     broker_key: &String,
     pool: &PgPool,
 ) -> Result<(), anyhow::Error> {
-
     let oanda_client = fxoanda::Client {
         host: "api-fxtrade.oanda.com".to_string(),
         reqwest: client.clone(),
@@ -61,7 +60,6 @@ pub async fn fetch_fx_price_data(
         sleep(StdDuration::from_millis(500)).await;
     }
 
-
     let rows: Vec<FxPriceDaily> = all_candles_d
         .iter()
         .filter(|c| c.complete.unwrap_or(false))
@@ -72,8 +70,6 @@ pub async fn fetch_fx_price_data(
 
     Ok(())
 }
-
-
 
 #[derive(Debug)]
 pub struct FxPriceDaily {
