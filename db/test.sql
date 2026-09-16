@@ -1,4 +1,5 @@
 SELECT * FROM dim_currency;
+SELECT * FROM cot_tff LIMIT 3;
 
 SELECT column_name, data_type
 FROM information_schema.columns
@@ -13,7 +14,7 @@ UNION ALL
 SELECT 'fx', COUNT(*) FROM fx_price_daily WHERE price_date = '2016-01-08';
 
 
--- TODO
+-- # Make view TODO 
 SELECT (
     (ct.leveraged_money_positions_long - ct.leveraged_money_positions_short) * (CASE WHEN dc.base_type = 'Inverted'
         THEN -1 ELSE 1 END)

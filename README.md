@@ -5,7 +5,7 @@ project: cie
 ---
 
 <p align="center">
-  <img src="docs/cie_flowchart.png" alt="CIE System Flowchart" width="80%">
+  <img src="docs/cie_v1.gif" alt="CIE System Flowchart" width="80%">
 </p>
 
 # Introduction
@@ -56,3 +56,7 @@ First run backfills COT from 2016 and daily FX candles from 2016, which takes a 
 ### Connecting Power BI
 
 Get Data → PostgreSQL database. Server `localhost`, database `cie`. The tables are `cot_tff`, `fx_price_daily`, and `dim_currency`, joined on `cftc_contract_market_code` and `currency_pair`.
+
+<p align="center">
+  <img src="docs/cie_flowchart.png" alt="CIE System Flowchart" width="80%">
+</p>
